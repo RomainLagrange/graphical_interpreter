@@ -1,0 +1,9 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="popop:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/popop_jar</output-path>
+    <root id="archive" name="popop.jar">
+      <element id="module-output" name="popop" />
+      <element id="extracted-dir" path="$USER_HOME$/Téléchargements/univocity-parsers-2.8.4.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
