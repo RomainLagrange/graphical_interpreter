@@ -16,7 +16,9 @@ public class Main extends Application {
         Controller_Accueil controller = (Controller_Accueil)loader.getController();
         controller.setStage(primaryStage);
         primaryStage.setTitle("Hello World");
-        primaryStage.setScene(new Scene(root, 400, 300));
+        Scene scene = new Scene(root);
+        primaryStage.setScene(scene);
+        scene.getWindow().sizeToScene();
         primaryStage.show();
     }
 

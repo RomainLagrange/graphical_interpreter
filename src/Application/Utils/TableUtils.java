@@ -1,4 +1,4 @@
-package Application.Interpreteur.Utils;
+package Application.Utils;
 
 import Application.Interpreteur.Object.Mutation;
 import Application.Interpreteur.Object.Patient;
@@ -26,7 +26,6 @@ public class TableUtils {
 
             tsvContent.add(Arrays.asList(allRows.get(i)));
         }
-        System.out.println(tsvContent);
         return tsvContent;
 
     }
@@ -95,7 +94,7 @@ public class TableUtils {
         for (int i = 1; i < tsv.get(1).size(); i++){
             List<Mutation> mutationList = getMutations(tsv);
             for (int j = 1; j < tsv.size(); j++){
-                mutationList.get(j-1).setTaux(Integer.valueOf(tsv.get(j).get(i)));
+                mutationList.get(j-1).setTaux(Double.valueOf(tsv.get(j).get(i)));
             }
             patientList.get(i).setMutationList(mutationList);
         }

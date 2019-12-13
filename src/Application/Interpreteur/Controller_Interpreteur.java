@@ -2,39 +2,41 @@ package Application.Interpreteur;
 
 import Application.Interpreteur.Object.Mutation;
 import Application.Interpreteur.Object.Patient;
-import Application.Interpreteur.Utils.TableUtils;
+import Application.Utils.TableUtils;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
 
-import static Application.Interpreteur.Utils.TableUtils.*;
+import static Application.Utils.TableUtils.*;
 
 public class Controller_Interpreteur {
 
-    private Integer min_vert;
+    private Double min_vert;
 
-    private Integer max_vert;
+    private Double max_vert;
 
-    private Integer min_orange;
+    private Double min_orange;
 
-    private Integer max_orange;
+    private Double max_orange;
 
-    private Integer min_rouge;
+    private Double min_rouge;
 
-    private Integer max_rouge;
+    private Double max_rouge;
 
     private File table_file;
 
     private List<List<String>> tsv;
+
+    private HashMap<String, Integer> sizeGene;
 
     @FXML
     private Label label_spinner;
@@ -65,6 +67,8 @@ public class Controller_Interpreteur {
             for (Patient patient:listPatients) {
                 VBox boxPatient = new VBox();
                 Label nom_patient = new Label(patient.getIdentifiant());
+                nom_patient.setTextFill(Color.RED);
+                nom_patient.setFont(Font.font("Cambria", 20));
                 boxPatient.getChildren().addAll(nom_patient);
                 for (String gene:listGenes) {
                     HBox hbox = new_gene_box(gene,patient.getMutationList());
@@ -72,17 +76,22 @@ public class Controller_Interpreteur {
                 }
                 this.vbox.getChildren().add(boxPatient);
             }
+
         });
 
     }
 
     private HBox new_gene_box(String nom_du_gene, List<Mutation> mutationList) {
-        Rectangle rec = rect();
+        Rectangle rec = rect(this.sizeGene.get(nom_du_gene));
         HBox hbox = new HBox();
         hbox.setAlignment(Pos.CENTER);
 
+        Region region1 = new Region();
+        HBox.setHgrow(region1, Priority.ALWAYS);
+
         Label nom_gene = new Label(nom_du_gene);
         nom_gene.setMinWidth(150);
+        nom_gene.setMinHeight(50);
         nom_gene.setAlignment(Pos.CENTER);
 
         AnchorPane gene_pane = new AnchorPane();
@@ -91,20 +100,21 @@ public class Controller_Interpreteur {
 
         for (Mutation mutation:mutationList) {
             if (mutation.getGene().equals(nom_du_gene) && mutation.getTaux()>0){
-                createGeneLine(hbox, gene_pane, mutation);
+                createMutationBox(hbox, gene_pane, mutation);
             }
         }
 
         hbox.getChildren().add(nom_gene);
         hbox.getChildren().add(gene_pane);
+        hbox.getChildren().add(region1);
 
         return hbox;
     }
 
-    private void createGeneLine(HBox hbox, AnchorPane gene_pane, Mutation mutation) {
+    private void createMutationBox(HBox hbox, AnchorPane gene_pane, Mutation mutation) {
         Rectangle rec_vert = rec_vert();
 
-        Label mutationLabel = getLabelMutation(mutation.getMutation_nuc());
+        Label mutationLabel = getLabelMutation(mutation.getMutation_nuc() +"\n" + mutation.getPosition_nuc());
         mutationLabel.setMinWidth(30);
 
         gene_pane.getChildren().add(rec_vert);
@@ -120,8 +130,8 @@ public class Controller_Interpreteur {
         hbox.setMinHeight(120);
     }
 
-    private Rectangle rect() {
-        Rectangle rec =new Rectangle(3000,40);
+    private Rectangle rect(int x) {
+        Rectangle rec =new Rectangle(x,40);
         rec.setFill(Color.WHITE);
         rec.setStroke(Color.BLACK);
         return rec;
@@ -150,27 +160,35 @@ public class Controller_Interpreteur {
         return mutation;
     }
 
-    public void setMin_vert(Integer min_vert) {
+    public HashMap<String, Integer> getSizeGene() {
+        return sizeGene;
+    }
+
+    public void setSizeGene(HashMap<String, Integer> sizeGene) {
+        this.sizeGene = sizeGene;
+    }
+
+    public void setMin_vert(Double min_vert) {
         this.min_vert=min_vert;
     }
 
-    public void setMax_vert(Integer max_vert) {
+    public void setMax_vert(Double max_vert) {
         this.max_vert = max_vert;
     }
 
-    public void setMin_orange(Integer min_orange) {
+    public void setMin_orange(Double min_orange) {
         this.min_orange = min_orange;
     }
 
-    public void setMax_orange(Integer max_orange) {
+    public void setMax_orange(Double max_orange) {
         this.max_orange = max_orange;
     }
 
-    public void setMin_rouge(Integer min_rouge) {
+    public void setMin_rouge(Double min_rouge) {
         this.min_rouge = min_rouge;
     }
 
-    public void setMax_rouge(Integer max_rouge) {
+    public void setMax_rouge(Double max_rouge) {
         this.max_rouge = max_rouge;
     }
 

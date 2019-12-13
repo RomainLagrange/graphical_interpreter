@@ -12,7 +12,7 @@ public class Mutation {
 
     private String gene;
 
-    private Integer taux;
+    private Double taux;
 
     public Mutation(Integer position_nuc, Integer position_pro, String mutation_nuc, String mutation_pro, String gene) {
         this.position_nuc = position_nuc;
@@ -20,14 +20,14 @@ public class Mutation {
         this.mutation_nuc = mutation_nuc;
         this.mutation_pro = mutation_pro;
         this.gene = gene;
-        this.taux = 0;
+        this.taux = 0.0;
     }
 
-    public Integer getTaux() {
+    public Double getTaux() {
         return taux;
     }
 
-    public void setTaux(Integer taux) {
+    public void setTaux(Double taux) {
         this.taux = taux;
     }
 
