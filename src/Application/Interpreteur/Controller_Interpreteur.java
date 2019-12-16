@@ -38,6 +38,8 @@ public class Controller_Interpreteur {
 
     private HashMap<String, Integer> sizeGene;
 
+    private HashMap<String, String> filtre;
+
     @FXML
     private Label label_spinner;
 
@@ -194,5 +196,9 @@ public class Controller_Interpreteur {
 
     public void setTable_file(File table_file) {
         this.table_file = table_file;
+    }
+
+    public void setFiltre(HashMap<String, String> filtre) {
+        this.filtre = filtre;
     }
 }

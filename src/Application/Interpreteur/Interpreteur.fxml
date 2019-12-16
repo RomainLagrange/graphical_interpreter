@@ -1,13 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.layout.VBox?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
 <ScrollPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Application.Interpreteur.Controller_Interpreteur">
 <AnchorPane fx:id="pane_interpreteur" prefHeight="400.0" prefWidth="600.0">
    <children>
-      <Label fx:id="label_spinner" layoutX="23.0" layoutY="9.0" prefHeight="71.0" prefWidth="292.0" text="Label" />
+         <HBox layoutX="23.0" layoutY="9.0" prefHeight="60.0" prefWidth="292.0">
+            <children>
+            <Label fx:id="label_spinner" prefHeight="60.0" prefWidth="150.0" text="Label" />
+               <Label prefHeight="60.0" prefWidth="142.0" text="Label" />
+            </children>
+         </HBox>
       <Label fx:id="label_file" layoutX="23.0" layoutY="88.0" prefHeight="20.0" prefWidth="292.0" text="Label" />
       <VBox fx:id="vbox" layoutX="23.0" layoutY="137.0" prefHeight="248.0" prefWidth="562.0" />
    </children>

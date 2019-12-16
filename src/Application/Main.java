@@ -14,8 +14,9 @@ public class Main extends Application {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("Accueil/Accueil.fxml"));
         Parent root = (Parent)loader.load();
         Controller_Accueil controller = (Controller_Accueil)loader.getController();
+        controller.setFieldFomat();
         controller.setStage(primaryStage);
-        primaryStage.setTitle("Hello World");
+        primaryStage.setTitle("Accueil");
         Scene scene = new Scene(root);
         primaryStage.setScene(scene);
         scene.getWindow().sizeToScene();
