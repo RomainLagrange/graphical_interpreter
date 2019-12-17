@@ -289,7 +289,7 @@ public class Controller_Accueil {
             Label nom = new Label(gene);
             nom.setId(gene);
             nom.setPrefWidth(150);
-            TextField taille_gene = new TextField();
+            TextField taille_gene = new TextField("3000");
             taille_gene.textProperty().addListener(new ChangeListener<String>() {
                 @Override
                 public void changed(ObservableValue<? extends String> observable, String oldValue,

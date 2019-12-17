@@ -7,6 +7,7 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
+import javafx.scene.control.Slider;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -47,53 +48,147 @@ public class Controller_Interpreteur {
     private Label label_file;
 
     @FXML
+    private Label label_filtre;
+
+    @FXML
     private AnchorPane pane_interpreteur;
 
     @FXML
     private VBox vbox;
 
+    private Slider slider;
+
+
     @FXML private void initialize() {
         Platform.runLater(() -> {
-            this.label_spinner.setText("Valeur de vert : " + this.min_vert + " - " + this.max_vert + "\n" +
-                    "Valeur de orange : " + this.min_orange + " - " + this.max_orange + "\n" +
-                    "Valeur de rouge : " + this.min_rouge + " - " + this.max_rouge);
-            this.label_file.setText(this.table_file.getPath());
-            this.tsv = TableUtils.getTSV(this.table_file);
+            setLabels();
 
             List<String> listGenes = getListGenes(this.tsv);
             List<Patient> listPatients = getListPatient(this.tsv);
 
             setMutationsPatients(listPatients,this.tsv);
 
-
-            for (Patient patient:listPatients) {
-                VBox boxPatient = new VBox();
-                Label nom_patient = new Label(patient.getIdentifiant());
-                nom_patient.setTextFill(Color.RED);
-                nom_patient.setFont(Font.font("Cambria", 20));
-                boxPatient.getChildren().addAll(nom_patient);
-                for (String gene:listGenes) {
-                    HBox hbox = new_gene_box(gene,patient.getMutationList());
-                    boxPatient.getChildren().add(hbox);
-                }
-                this.vbox.getChildren().add(boxPatient);
-            }
+            generateAnalysis(listGenes, listPatients);
 
         });
 
     }
 
-    private HBox new_gene_box(String nom_du_gene, List<Mutation> mutationList) {
-        Rectangle rec = rect(this.sizeGene.get(nom_du_gene));
+    /**
+     * Méthode qui va générer tous les gènes avec leurs mutations pour chaque cas d'analyse différents
+     * @param listGenes
+     * @param listPatients
+     */
+    private void generateAnalysis(List<String> listGenes, List<Patient> listPatients) {
+        if (this.filtre.get("analysis").equals("complet")){
+            for (Patient patient:listPatients) {
+                VBox boxPatient = getvBox(patient);
+                for (String gene:listGenes) {
+                    HBox hbox = newGeneBox(gene,patient.getMutationList());
+                    HBox hbox2 = newGeneBoxMini(gene,patient.getMutationList());
+                    boxPatient.getChildren().addAll(hbox,hbox2);
+                }
+                this.vbox.getChildren().add(boxPatient);
+            }
+        }
+        if (this.filtre.get("analysis").equals("gene")) {
+            for (Patient patient:listPatients) {
+                geneUsed(listGenes, patient);
+            }
+        }
+        if (this.filtre.get("analysis").equals("cohort")) {
+            if (this.filtre.containsKey("gene")){
+                for (Patient patient:listPatients) {
+                    if (patient.getIdentifiant().contains(this.filtre.get("cohort"))){
+                        geneUsed(listGenes, patient);
+                    }
+                }
+            }
+            else {
+                for (Patient patient:listPatients) {
+                    if (patient.getIdentifiant().contains(this.filtre.get("cohort"))){
+                        VBox boxPatient = getvBox(patient);
+                        for (String gene:listGenes) {
+                            HBox hbox = newGeneBox(gene,patient.getMutationList());
+                            HBox hbox2 = newGeneBoxMini(gene,patient.getMutationList());
+                            boxPatient.getChildren().addAll(hbox,hbox2);
+                        }
+                        this.vbox.getChildren().add(boxPatient);
+                    }
+                }
+            }
+        }
+    }
+
+    private void geneUsed(List<String> listGenes, Patient patient) {
+        VBox boxPatient = getvBox(patient);
+        for (String gene:listGenes) {
+            if (gene.equals(this.filtre.get("gene"))){
+                HBox hbox = newGeneBox(gene,patient.getMutationList());
+                HBox hbox2 = newGeneBoxMini(gene,patient.getMutationList());
+                boxPatient.getChildren().addAll(hbox,hbox2);
+            }
+        }
+        this.vbox.getChildren().add(boxPatient);
+    }
+
+    private VBox getvBox(Patient patient) {
+        VBox boxPatient = new VBox(10);
+        Label nom_patient = new Label(patient.getIdentifiant());
+        nom_patient.setTextFill(Color.RED);
+        nom_patient.setFont(Font.font("Cambria", 20));
+        nom_patient.setAlignment(Pos.BASELINE_LEFT);
+        boxPatient.getChildren().addAll(nom_patient);
+        return boxPatient;
+    }
+
+    /**
+     * Méthode qui permet de compléter les labels en haut de l'analyse, pour rappeler les valeurs
+     * de couleurs saisie ainsi que le filtre d'analyse utilisé
+     */
+    private void setLabels() {
+        this.label_spinner.setText("Valeur de vert : " + this.min_vert + " - " + this.max_vert + "\n" +
+                "Valeur de orange : " + this.min_orange + " - " + this.max_orange + "\n" +
+                "Valeur de rouge : " + this.min_rouge + " - " + this.max_rouge);
+        this.label_file.setText(this.table_file.getPath());
+        this.tsv = TableUtils.getTSV(this.table_file);
+        if (this.filtre.get("analysis").equals("complet")){
+            this.label_filtre.setText("Complet analysis running");
+        }
+        else if (this.filtre.get("analysis").equals("gene")) {
+            this.label_filtre.setText("Gene analysis running \nGene : " + this.filtre.get("gene"));
+        }
+        else {
+            if (this.filtre.containsKey("gene")){
+                this.label_filtre.setText("Cohort analysis running \nCohort : " + this.filtre.get("cohort") +
+                        "\nGene : " + this.filtre.get("gene"));
+            }
+            else {
+                this.label_filtre.setText("Cohort analysis running \n Cohort : " + this.filtre.get("cohort"));
+            }
+        }
+    }
+
+    /**
+     * Méthode qui permet de génerer un gène avec toutes ses mutations.
+     * La liste de mutations en paramètre est celle d'un patient
+     * @param nom_du_gene
+     * @param mutationList
+     * @return
+     */
+    private HBox newGeneBox(String nom_du_gene, List<Mutation> mutationList) {
+        Rectangle rec = rect(this.sizeGene.get(nom_du_gene), 40);
+
         HBox hbox = new HBox();
-        hbox.setAlignment(Pos.CENTER);
+        hbox.setAlignment(Pos.TOP_CENTER);
+        hbox.setMinHeight(80);
 
         Region region1 = new Region();
         HBox.setHgrow(region1, Priority.ALWAYS);
 
         Label nom_gene = new Label(nom_du_gene);
         nom_gene.setMinWidth(150);
-        nom_gene.setMinHeight(50);
+        nom_gene.setMinHeight(90);
         nom_gene.setAlignment(Pos.CENTER);
 
         AnchorPane gene_pane = new AnchorPane();
@@ -101,8 +196,8 @@ public class Controller_Interpreteur {
         gene_pane.setTopAnchor(rec,40.0);
 
         for (Mutation mutation:mutationList) {
-            if (mutation.getGene().equals(nom_du_gene) && mutation.getTaux()>0){
-                createMutationBox(hbox, gene_pane, mutation);
+            if (mutation.getGene().equals(nom_du_gene) && mutation.getTaux()>this.min_vert){
+                createMutationBox(gene_pane, mutation);
             }
         }
 
@@ -113,46 +208,128 @@ public class Controller_Interpreteur {
         return hbox;
     }
 
-    private void createMutationBox(HBox hbox, AnchorPane gene_pane, Mutation mutation) {
-        Rectangle rec_vert = rec_vert();
+    private HBox newGeneBoxMini(String nom_du_gene, List<Mutation> mutationList){
+        Rectangle rec = rect(this.sizeGene.get(nom_du_gene)/10, 20);
 
-        Label mutationLabel = getLabelMutation(mutation.getMutation_nuc() +"\n" + mutation.getPosition_nuc());
+        HBox hbox = new HBox();
+        hbox.setMinHeight(20);
+
+        Region region1 = new Region();
+        HBox.setHgrow(region1, Priority.ALWAYS);
+
+//        Label nom_gene = new Label();
+//        nom_gene.setMinWidth(150);
+//        nom_gene.setMinHeight(20);
+//        nom_gene.setAlignment(Pos.CENTER);
+
+        AnchorPane gene_pane = new AnchorPane();
+        gene_pane.getChildren().add(rec);
+//        gene_pane.setTopAnchor(rec,20.0);
+        gene_pane.setLeftAnchor(rec,150.0);
+
+        for (Mutation mutation:mutationList) {
+            if (mutation.getGene().equals(nom_du_gene) && mutation.getTaux()>this.min_vert){
+                createMutationBoxMini(gene_pane, mutation);
+            }
+        }
+
+//        hbox.getChildren().add(nom_gene);
+        hbox.getChildren().add(gene_pane);
+        hbox.getChildren().add(region1);
+
+        return hbox;
+    }
+
+    /**
+     * Méthode qui permet de génerer un rectangle mutation qui sera placé sur le gène
+     * La mutation passé en paramètre permet de déterminer le choix de la couleur du rectangle
+     * @param gene_pane
+     * @param mutation
+     */
+    private void createMutationBox(AnchorPane gene_pane, Mutation mutation) {
+
+        Rectangle rec;
+
+        if (mutation.getTaux()<=this.max_vert && mutation.getTaux()>this.min_vert ){
+            rec = rec_vert(39, 5);
+        }
+        else if (mutation.getTaux()<=this.max_orange && mutation.getTaux()>this.min_orange){
+            rec = rec_orange(39, 5);
+        }
+        else {
+            rec = rec_rouge(39, 5);
+        }
+
+        Label mutationLabel;
+        if (mutation.getMutation_nuc().equals("COMPLEX")) {
+            mutationLabel = getLabelMutation("CX" +"\n" + mutation.getPosition_nuc());
+        }
+        else {
+            mutationLabel = getLabelMutation(mutation.getMutation_nuc() +"\n" + mutation.getPosition_nuc());
+        }
+
         mutationLabel.setMinWidth(30);
 
-        gene_pane.getChildren().add(rec_vert);
+        gene_pane.getChildren().add(rec);
         gene_pane.getChildren().add(mutationLabel);
 
         gene_pane.setTopAnchor(mutationLabel,0.0);
         gene_pane.setLeftAnchor(mutationLabel, Double.valueOf(mutation.getPosition_nuc()) - 10.0);
 
-        gene_pane.setTopAnchor(rec_vert,40.0);
-        gene_pane.setLeftAnchor(rec_vert, Double.valueOf(mutation.getPosition_nuc()));
+        gene_pane.setTopAnchor(rec,41.0);
+        gene_pane.setLeftAnchor(rec, Double.valueOf(mutation.getPosition_nuc()));
 
-        hbox.setAlignment(Pos.CENTER);
-        hbox.setMinHeight(120);
     }
 
-    private Rectangle rect(int x) {
-        Rectangle rec =new Rectangle(x,40);
+    /**
+     * Méthode qui permet de génerer un rectangle mutation qui sera placé sur le gène
+     * La mutation passé en paramètre permet de déterminer le choix de la couleur du rectangle
+     * @param gene_pane
+     * @param mutation
+     */
+    private void createMutationBoxMini(AnchorPane gene_pane, Mutation mutation) {
+
+        Rectangle rec;
+
+        if (mutation.getTaux()<=this.max_vert && mutation.getTaux()>this.min_vert ){
+            rec = rec_vert(19, 2);
+        }
+        else if (mutation.getTaux()<=this.max_orange && mutation.getTaux()>this.min_orange){
+            rec = rec_orange(19, 2);
+        }
+        else {
+            rec = rec_rouge(19, 2);
+        }
+
+        gene_pane.getChildren().add(rec);
+
+
+        gene_pane.setTopAnchor(rec,1.0);
+        gene_pane.setLeftAnchor(rec, 150.0 + Double.valueOf(mutation.getPosition_nuc())/10);
+
+    }
+
+    private Rectangle rect(int x, int height) {
+        Rectangle rec =new Rectangle(x, height);
         rec.setFill(Color.WHITE);
         rec.setStroke(Color.BLACK);
         return rec;
     }
 
-    private Rectangle rec_rouge() {
-        Rectangle rec_rouge =new Rectangle(20,40);
-        rec_rouge.setFill(Color.RED);
+    private Rectangle rec_rouge(int height, int width) {
+        Rectangle rec_rouge =new Rectangle(width, height);
+        rec_rouge.setFill(Color.rgb(255,0,0));
         return rec_rouge;
     }
 
-    private Rectangle rec_orange() {
-        Rectangle rec_rouge =new Rectangle(20,40);
-        rec_rouge.setFill(Color.ORANGE);
+    private Rectangle rec_orange(int height, int width) {
+        Rectangle rec_rouge =new Rectangle(width, height);
+        rec_rouge.setFill(Color.rgb(255, 153, 0));
         return rec_rouge;
     }
 
-    private Rectangle rec_vert() {
-        Rectangle rec_vert =new Rectangle(5,40);
+    private Rectangle rec_vert(int height, int width) {
+        Rectangle rec_vert =new Rectangle(width, height);
         rec_vert.setFill(Color.GREEN);
         return rec_vert;
     }
