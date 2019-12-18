@@ -2,6 +2,9 @@ package Application.Interpreteur.Object;
 
 import java.util.List;
 
+/**
+ * Classe permettant de stocker un patient avec sa liste de mutations
+ */
 public class Patient {
 
     private String identifiant;
@@ -14,10 +17,6 @@ public class Patient {
 
     public String getIdentifiant() {
         return identifiant;
-    }
-
-    public void setIdentifiant(String identifiant) {
-        this.identifiant = identifiant;
     }
 
     public List<Mutation> getMutationList() {

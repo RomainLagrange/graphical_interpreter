@@ -1,17 +1,38 @@
 package Application.Interpreteur.Object;
 
+/**
+ * Classe qu permet de stocker une mutation
+ */
 public class Mutation {
 
+    /**
+     * Position nucléotidique de la mutation
+     */
     private Integer position_nuc;
 
+    /**
+     * Position protéique de la mutation
+     */
     private Integer position_pro;
 
+    /**
+     * Type de la mutation en nucléotide
+     */
     private String mutation_nuc;
 
+    /**
+     * Type de la mutation en acide aminé
+     */
     private String mutation_pro;
 
+    /**
+     * Nom du gène sur lequel se trouve la mutation
+     */
     private String gene;
 
+    /**
+     * Taux de la mutation pour le patient
+     */
     private Double taux;
 
     public Mutation(Integer position_nuc, Integer position_pro, String mutation_nuc, String mutation_pro, String gene) {

@@ -27,6 +27,9 @@ import java.util.List;
 import static Application.Utils.TableUtils.*;
 import static javafx.embed.swing.SwingFXUtils.fromFXImage;
 
+/**
+ * Classe qui sert de controller à la fenetre de l'interpreteur
+ */
 public class Controller_Interpreteur {
 
     private Double min_vert;
@@ -43,6 +46,9 @@ public class Controller_Interpreteur {
 
     private File table_file;
 
+    /**
+     * Contenu du fichier TSV
+     */
     private List<List<String>> tsv;
 
     private HashMap<String, Integer> sizeGene;
@@ -50,7 +56,7 @@ public class Controller_Interpreteur {
     private HashMap<String, String> filtre;
 
     @FXML
-    private Label label_spinner;
+    private Label label_couleur;
 
     @FXML
     private Label label_file;
@@ -84,7 +90,7 @@ public class Controller_Interpreteur {
      */
     @FXML
     private void saveImage() {
-        BufferedImage bufferedImage = new BufferedImage(1080, 720, BufferedImage.TYPE_INT_ARGB);
+        BufferedImage bufferedImage = new BufferedImage(550, 400, BufferedImage.TYPE_INT_ARGB);
 
         WritableImage snapshot = pane_interpreteur.snapshot(new SnapshotParameters(), null);
         pane_interpreteur.getChildren().add(new ImageView(snapshot));
@@ -101,17 +107,16 @@ public class Controller_Interpreteur {
             //Prompt user to select a file
             File file = fileChooser.showSaveDialog(null);
             ImageIO.write(image, "png", file);
-        } catch (IOException ex) {
+        } catch (IOException ignored) {
         }
-        ;
     }
 
 
     /**
      * Méthode qui va générer tous les gènes avec leurs mutations pour chaque cas d'analyse différents
      *
-     * @param listGenes
-     * @param listPatients
+     * @param listGenes liste des gènes
+     * @param listPatients liste des patients
      */
     private void generateAnalysis(List<String> listGenes, List<Patient> listPatients) {
         if (this.filtre.get("analysis").equals("complet")) {
@@ -157,8 +162,8 @@ public class Controller_Interpreteur {
      * Méthode pour générer la liste des analyses génomique dans le cas où l'analyse se concentre sur
      * un seul gène
      *
-     * @param listGenes
-     * @param patient
+     * @param listGenes liste des gènes
+     * @param patient patient en cours
      */
     private void generatePatientForOnePreciseGene(List<String> listGenes, Patient patient) {
         VBox boxPatient = getvBox(patient);
@@ -176,8 +181,8 @@ public class Controller_Interpreteur {
      * Création de la box patient avec le nom du patient
      * La VBox se remplira avec les différents gènes par la suite
      *
-     * @param patient
-     * @return
+     * @param patient Patient en cours de création
+     * @return VBox du Patient
      */
     private VBox getvBox(Patient patient) {
         VBox boxPatient = new VBox(10);
@@ -194,7 +199,7 @@ public class Controller_Interpreteur {
      * de couleurs saisie ainsi que le filtre d'analyse utilisé
      */
     private void setLabels() {
-        this.label_spinner.setText("Valeur de vert : " + this.min_vert + " - " + this.max_vert + "\n" +
+        this.label_couleur.setText("Valeur de vert : " + this.min_vert + " - " + this.max_vert + "\n" +
                 "Valeur de orange : " + this.min_orange + " - " + this.max_orange + "\n" +
                 "Valeur de rouge : " + this.min_rouge + " - " + this.max_rouge);
         this.label_file.setText(this.table_file.getPath());
@@ -218,9 +223,9 @@ public class Controller_Interpreteur {
      * Méthode qui permet de génerer un gène avec toutes ses mutations.
      * La liste de mutations en paramètre est celle d'un patient
      *
-     * @param nom_du_gene
-     * @param mutationList
-     * @return
+     * @param nom_du_gene Nom du gène
+     * @param mutationList Liste des mutations
+     * @return Gène construit avec ses mutations
      */
     private HBox newGeneBox(String nom_du_gene, List<Mutation> mutationList) {
         Rectangle rec = rect(this.sizeGene.get(nom_du_gene), 40);
@@ -239,7 +244,7 @@ public class Controller_Interpreteur {
 
         AnchorPane gene_pane = new AnchorPane();
         gene_pane.getChildren().add(rec);
-        gene_pane.setTopAnchor(rec, 40.0);
+        AnchorPane.setTopAnchor(rec, 40.0);
 
         for (Mutation mutation : mutationList) {
             if (mutation.getGene().equals(nom_du_gene) && mutation.getTaux() > this.min_vert) {
@@ -265,7 +270,7 @@ public class Controller_Interpreteur {
 
         AnchorPane gene_pane = new AnchorPane();
         gene_pane.getChildren().add(rec);
-        gene_pane.setLeftAnchor(rec, 150.0);
+        AnchorPane.setLeftAnchor(rec, 150.0);
 
         for (Mutation mutation : mutationList) {
             if (mutation.getGene().equals(nom_du_gene) && mutation.getTaux() > this.min_vert) {
@@ -283,8 +288,8 @@ public class Controller_Interpreteur {
      * Méthode qui permet de génerer un rectangle mutation qui sera placé sur le gène
      * La mutation passé en paramètre permet de déterminer le choix de la couleur du rectangle
      *
-     * @param gene_pane
-     * @param mutation
+     * @param gene_pane pane du gène
+     * @param mutation mutation à ajouter
      */
     private void createMutationBox(AnchorPane gene_pane, Mutation mutation) {
 
@@ -310,11 +315,11 @@ public class Controller_Interpreteur {
         gene_pane.getChildren().add(rec);
         gene_pane.getChildren().add(mutationLabel);
 
-        gene_pane.setTopAnchor(mutationLabel, 0.0);
-        gene_pane.setLeftAnchor(mutationLabel, Double.valueOf(mutation.getPosition_nuc()) - 10.0);
+        AnchorPane.setTopAnchor(mutationLabel, 0.0);
+        AnchorPane.setLeftAnchor(mutationLabel, Double.valueOf(mutation.getPosition_nuc()) - 10.0);
 
-        gene_pane.setTopAnchor(rec, 41.0);
-        gene_pane.setLeftAnchor(rec, Double.valueOf(mutation.getPosition_nuc()));
+        AnchorPane.setTopAnchor(rec, 41.0);
+        AnchorPane.setLeftAnchor(rec, Double.valueOf(mutation.getPosition_nuc()));
 
     }
 
@@ -322,8 +327,8 @@ public class Controller_Interpreteur {
      * Méthode qui permet de génerer un rectangle mutation qui sera placé sur le gène
      * La mutation passé en paramètre permet de déterminer le choix de la couleur du rectangle
      *
-     * @param gene_pane
-     * @param mutation
+     * @param gene_pane Pane du gène
+     * @param mutation Mutation en cours de création
      */
     private void createMutationBoxMini(AnchorPane gene_pane, Mutation mutation) {
 
@@ -340,17 +345,17 @@ public class Controller_Interpreteur {
         gene_pane.getChildren().add(rec);
 
 
-        gene_pane.setTopAnchor(rec, 1.0);
-        gene_pane.setLeftAnchor(rec, 150.0 + Double.valueOf(mutation.getPosition_nuc()) / 10);
+        AnchorPane.setTopAnchor(rec, 1.0);
+        AnchorPane.setLeftAnchor(rec, 150.0 + Double.valueOf(mutation.getPosition_nuc()) / 10);
 
     }
 
     /**
      * Génération du rectangle correspondant au gène
      *
-     * @param width
-     * @param height
-     * @return
+     * @param width Largeur
+     * @param height Hauteur
+     * @return Rectangle blanc
      */
     private Rectangle rect(int width, int height) {
         Rectangle rec = new Rectangle(width, height);
@@ -362,9 +367,9 @@ public class Controller_Interpreteur {
     /**
      * Génération du rectangle mutation rouge
      *
-     * @param height
-     * @param width
-     * @return
+     * @param height Hauteur
+     * @param width Largeur
+     * @return Rectangle rouge
      */
     private Rectangle rec_rouge(int height, int width) {
         Rectangle rec_rouge = new Rectangle(width, height);
@@ -375,9 +380,9 @@ public class Controller_Interpreteur {
     /**
      * Génération du rectangle mutation orange
      *
-     * @param height
-     * @param width
-     * @return
+     * @param height Hauteur
+     * @param width Largeur
+     * @return Rectangle orange
      */
     private Rectangle rec_orange(int height, int width) {
         Rectangle rec_rouge = new Rectangle(width, height);
@@ -388,9 +393,9 @@ public class Controller_Interpreteur {
     /**
      * Génération du rectangle mutation vert
      *
-     * @param height
-     * @param width
-     * @return
+     * @param height Hauteur
+     * @param width Largeur
+     * @return Rectangle vert
      */
     private Rectangle rec_vert(int height, int width) {
         Rectangle rec_vert = new Rectangle(width, height);
@@ -401,16 +406,11 @@ public class Controller_Interpreteur {
     /**
      * Génération du label qui va accueillir nom + position de la mutation
      *
-     * @param text
-     * @return
+     * @param text Texte qui sera dans le label
+     * @return label remplis
      */
     private Label getLabelMutation(String text) {
-        Label mutation = new Label(text);
-        return mutation;
-    }
-
-    public HashMap<String, Integer> getSizeGene() {
-        return sizeGene;
+        return new Label(text);
     }
 
     public void setSizeGene(HashMap<String, Integer> sizeGene) {

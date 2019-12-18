@@ -16,8 +16,8 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("Accueil/Accueil.fxml"));
-        Parent root = (Parent) loader.load();
-        Controller_Accueil controller = (Controller_Accueil) loader.getController();
+        Parent root = loader.load();
+        Controller_Accueil controller = loader.getController();
         controller.setFieldFomat();
         controller.setStage(primaryStage);
         primaryStage.setTitle("Accueil");
