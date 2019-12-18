@@ -6,18 +6,26 @@ import Application.Utils.TableUtils;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
+import javafx.scene.SnapshotParameters;
 import javafx.scene.control.Label;
-import javafx.scene.control.Slider;
+import javafx.scene.image.ImageView;
+import javafx.scene.image.WritableImage;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
+import javafx.stage.FileChooser;
 
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 
 import static Application.Utils.TableUtils.*;
+import static javafx.embed.swing.SwingFXUtils.fromFXImage;
 
 public class Controller_Interpreteur {
 
@@ -56,62 +64,87 @@ public class Controller_Interpreteur {
     @FXML
     private VBox vbox;
 
-    private Slider slider;
 
-
-    @FXML private void initialize() {
+    @FXML
+    private void initialize() {
         Platform.runLater(() -> {
             setLabels();
 
             List<String> listGenes = getListGenes(this.tsv);
             List<Patient> listPatients = getListPatient(this.tsv);
 
-            setMutationsPatients(listPatients,this.tsv);
+            setMutationsPatients(listPatients, this.tsv);
 
             generateAnalysis(listGenes, listPatients);
-
         });
-
     }
 
     /**
+     * Méthode qui permet d'exporter le contenu de l'anchorpane en fichier png
+     */
+    @FXML
+    private void saveImage() {
+        BufferedImage bufferedImage = new BufferedImage(1080, 720, BufferedImage.TYPE_INT_ARGB);
+
+        WritableImage snapshot = pane_interpreteur.snapshot(new SnapshotParameters(), null);
+        pane_interpreteur.getChildren().add(new ImageView(snapshot));
+
+        BufferedImage image;
+        image = fromFXImage(snapshot, bufferedImage);
+        try {
+            Graphics2D gd = (Graphics2D) image.getGraphics();
+            gd.translate(pane_interpreteur.getWidth(), pane_interpreteur.getHeight());
+            FileChooser fileChooser = new FileChooser();
+            //Set extension filter
+            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("png files (*.png)", "*.png"));
+
+            //Prompt user to select a file
+            File file = fileChooser.showSaveDialog(null);
+            ImageIO.write(image, "png", file);
+        } catch (IOException ex) {
+        }
+        ;
+    }
+
+
+    /**
      * Méthode qui va générer tous les gènes avec leurs mutations pour chaque cas d'analyse différents
+     *
      * @param listGenes
      * @param listPatients
      */
     private void generateAnalysis(List<String> listGenes, List<Patient> listPatients) {
-        if (this.filtre.get("analysis").equals("complet")){
-            for (Patient patient:listPatients) {
+        if (this.filtre.get("analysis").equals("complet")) {
+            for (Patient patient : listPatients) {
                 VBox boxPatient = getvBox(patient);
-                for (String gene:listGenes) {
-                    HBox hbox = newGeneBox(gene,patient.getMutationList());
-                    HBox hbox2 = newGeneBoxMini(gene,patient.getMutationList());
-                    boxPatient.getChildren().addAll(hbox,hbox2);
+                for (String gene : listGenes) {
+                    HBox hbox = newGeneBox(gene, patient.getMutationList());
+                    HBox hbox2 = newGeneBoxMini(gene, patient.getMutationList());
+                    boxPatient.getChildren().addAll(hbox, hbox2);
                 }
                 this.vbox.getChildren().add(boxPatient);
             }
         }
         if (this.filtre.get("analysis").equals("gene")) {
-            for (Patient patient:listPatients) {
-                geneUsed(listGenes, patient);
+            for (Patient patient : listPatients) {
+                generatePatientForOnePreciseGene(listGenes, patient);
             }
         }
         if (this.filtre.get("analysis").equals("cohort")) {
-            if (this.filtre.containsKey("gene")){
-                for (Patient patient:listPatients) {
-                    if (patient.getIdentifiant().contains(this.filtre.get("cohort"))){
-                        geneUsed(listGenes, patient);
+            if (this.filtre.containsKey("gene")) {
+                for (Patient patient : listPatients) {
+                    if (patient.getIdentifiant().contains(this.filtre.get("cohort"))) {
+                        generatePatientForOnePreciseGene(listGenes, patient);
                     }
                 }
-            }
-            else {
-                for (Patient patient:listPatients) {
-                    if (patient.getIdentifiant().contains(this.filtre.get("cohort"))){
+            } else {
+                for (Patient patient : listPatients) {
+                    if (patient.getIdentifiant().contains(this.filtre.get("cohort"))) {
                         VBox boxPatient = getvBox(patient);
-                        for (String gene:listGenes) {
-                            HBox hbox = newGeneBox(gene,patient.getMutationList());
-                            HBox hbox2 = newGeneBoxMini(gene,patient.getMutationList());
-                            boxPatient.getChildren().addAll(hbox,hbox2);
+                        for (String gene : listGenes) {
+                            HBox hbox = newGeneBox(gene, patient.getMutationList());
+                            HBox hbox2 = newGeneBoxMini(gene, patient.getMutationList());
+                            boxPatient.getChildren().addAll(hbox, hbox2);
                         }
                         this.vbox.getChildren().add(boxPatient);
                     }
@@ -120,18 +153,32 @@ public class Controller_Interpreteur {
         }
     }
 
-    private void geneUsed(List<String> listGenes, Patient patient) {
+    /**
+     * Méthode pour générer la liste des analyses génomique dans le cas où l'analyse se concentre sur
+     * un seul gène
+     *
+     * @param listGenes
+     * @param patient
+     */
+    private void generatePatientForOnePreciseGene(List<String> listGenes, Patient patient) {
         VBox boxPatient = getvBox(patient);
-        for (String gene:listGenes) {
-            if (gene.equals(this.filtre.get("gene"))){
-                HBox hbox = newGeneBox(gene,patient.getMutationList());
-                HBox hbox2 = newGeneBoxMini(gene,patient.getMutationList());
-                boxPatient.getChildren().addAll(hbox,hbox2);
+        for (String gene : listGenes) {
+            if (gene.equals(this.filtre.get("gene"))) {
+                HBox hbox = newGeneBox(gene, patient.getMutationList());
+                HBox hbox2 = newGeneBoxMini(gene, patient.getMutationList());
+                boxPatient.getChildren().addAll(hbox, hbox2);
             }
         }
         this.vbox.getChildren().add(boxPatient);
     }
 
+    /**
+     * Création de la box patient avec le nom du patient
+     * La VBox se remplira avec les différents gènes par la suite
+     *
+     * @param patient
+     * @return
+     */
     private VBox getvBox(Patient patient) {
         VBox boxPatient = new VBox(10);
         Label nom_patient = new Label(patient.getIdentifiant());
@@ -152,26 +199,25 @@ public class Controller_Interpreteur {
                 "Valeur de rouge : " + this.min_rouge + " - " + this.max_rouge);
         this.label_file.setText(this.table_file.getPath());
         this.tsv = TableUtils.getTSV(this.table_file);
-        if (this.filtre.get("analysis").equals("complet")){
+        if (this.filtre.get("analysis").equals("complet")) {
             this.label_filtre.setText("Complet analysis running");
-        }
-        else if (this.filtre.get("analysis").equals("gene")) {
+        } else if (this.filtre.get("analysis").equals("gene")) {
             this.label_filtre.setText("Gene analysis running \nGene : " + this.filtre.get("gene"));
-        }
-        else {
-            if (this.filtre.containsKey("gene")){
+        } else {
+            if (this.filtre.containsKey("gene")) {
                 this.label_filtre.setText("Cohort analysis running \nCohort : " + this.filtre.get("cohort") +
                         "\nGene : " + this.filtre.get("gene"));
-            }
-            else {
+            } else {
                 this.label_filtre.setText("Cohort analysis running \n Cohort : " + this.filtre.get("cohort"));
             }
         }
     }
 
+
     /**
      * Méthode qui permet de génerer un gène avec toutes ses mutations.
      * La liste de mutations en paramètre est celle d'un patient
+     *
      * @param nom_du_gene
      * @param mutationList
      * @return
@@ -193,10 +239,10 @@ public class Controller_Interpreteur {
 
         AnchorPane gene_pane = new AnchorPane();
         gene_pane.getChildren().add(rec);
-        gene_pane.setTopAnchor(rec,40.0);
+        gene_pane.setTopAnchor(rec, 40.0);
 
-        for (Mutation mutation:mutationList) {
-            if (mutation.getGene().equals(nom_du_gene) && mutation.getTaux()>this.min_vert){
+        for (Mutation mutation : mutationList) {
+            if (mutation.getGene().equals(nom_du_gene) && mutation.getTaux() > this.min_vert) {
                 createMutationBox(gene_pane, mutation);
             }
         }
@@ -208,8 +254,8 @@ public class Controller_Interpreteur {
         return hbox;
     }
 
-    private HBox newGeneBoxMini(String nom_du_gene, List<Mutation> mutationList){
-        Rectangle rec = rect(this.sizeGene.get(nom_du_gene)/10, 20);
+    private HBox newGeneBoxMini(String nom_du_gene, List<Mutation> mutationList) {
+        Rectangle rec = rect(this.sizeGene.get(nom_du_gene) / 10, 20);
 
         HBox hbox = new HBox();
         hbox.setMinHeight(20);
@@ -217,23 +263,16 @@ public class Controller_Interpreteur {
         Region region1 = new Region();
         HBox.setHgrow(region1, Priority.ALWAYS);
 
-//        Label nom_gene = new Label();
-//        nom_gene.setMinWidth(150);
-//        nom_gene.setMinHeight(20);
-//        nom_gene.setAlignment(Pos.CENTER);
-
         AnchorPane gene_pane = new AnchorPane();
         gene_pane.getChildren().add(rec);
-//        gene_pane.setTopAnchor(rec,20.0);
-        gene_pane.setLeftAnchor(rec,150.0);
+        gene_pane.setLeftAnchor(rec, 150.0);
 
-        for (Mutation mutation:mutationList) {
-            if (mutation.getGene().equals(nom_du_gene) && mutation.getTaux()>this.min_vert){
+        for (Mutation mutation : mutationList) {
+            if (mutation.getGene().equals(nom_du_gene) && mutation.getTaux() > this.min_vert) {
                 createMutationBoxMini(gene_pane, mutation);
             }
         }
 
-//        hbox.getChildren().add(nom_gene);
         hbox.getChildren().add(gene_pane);
         hbox.getChildren().add(region1);
 
@@ -243,6 +282,7 @@ public class Controller_Interpreteur {
     /**
      * Méthode qui permet de génerer un rectangle mutation qui sera placé sur le gène
      * La mutation passé en paramètre permet de déterminer le choix de la couleur du rectangle
+     *
      * @param gene_pane
      * @param mutation
      */
@@ -250,22 +290,19 @@ public class Controller_Interpreteur {
 
         Rectangle rec;
 
-        if (mutation.getTaux()<=this.max_vert && mutation.getTaux()>this.min_vert ){
+        if (mutation.getTaux() <= this.max_vert && mutation.getTaux() > this.min_vert) {
             rec = rec_vert(39, 5);
-        }
-        else if (mutation.getTaux()<=this.max_orange && mutation.getTaux()>this.min_orange){
+        } else if (mutation.getTaux() <= this.max_orange && mutation.getTaux() > this.min_orange) {
             rec = rec_orange(39, 5);
-        }
-        else {
+        } else {
             rec = rec_rouge(39, 5);
         }
 
         Label mutationLabel;
         if (mutation.getMutation_nuc().equals("COMPLEX")) {
-            mutationLabel = getLabelMutation("CX" +"\n" + mutation.getPosition_nuc());
-        }
-        else {
-            mutationLabel = getLabelMutation(mutation.getMutation_nuc() +"\n" + mutation.getPosition_nuc());
+            mutationLabel = getLabelMutation("CX" + "\n" + mutation.getPosition_nuc());
+        } else {
+            mutationLabel = getLabelMutation(mutation.getMutation_nuc() + "\n" + mutation.getPosition_nuc());
         }
 
         mutationLabel.setMinWidth(30);
@@ -273,10 +310,10 @@ public class Controller_Interpreteur {
         gene_pane.getChildren().add(rec);
         gene_pane.getChildren().add(mutationLabel);
 
-        gene_pane.setTopAnchor(mutationLabel,0.0);
+        gene_pane.setTopAnchor(mutationLabel, 0.0);
         gene_pane.setLeftAnchor(mutationLabel, Double.valueOf(mutation.getPosition_nuc()) - 10.0);
 
-        gene_pane.setTopAnchor(rec,41.0);
+        gene_pane.setTopAnchor(rec, 41.0);
         gene_pane.setLeftAnchor(rec, Double.valueOf(mutation.getPosition_nuc()));
 
     }
@@ -284,6 +321,7 @@ public class Controller_Interpreteur {
     /**
      * Méthode qui permet de génerer un rectangle mutation qui sera placé sur le gène
      * La mutation passé en paramètre permet de déterminer le choix de la couleur du rectangle
+     *
      * @param gene_pane
      * @param mutation
      */
@@ -291,49 +329,81 @@ public class Controller_Interpreteur {
 
         Rectangle rec;
 
-        if (mutation.getTaux()<=this.max_vert && mutation.getTaux()>this.min_vert ){
+        if (mutation.getTaux() <= this.max_vert && mutation.getTaux() > this.min_vert) {
             rec = rec_vert(19, 2);
-        }
-        else if (mutation.getTaux()<=this.max_orange && mutation.getTaux()>this.min_orange){
+        } else if (mutation.getTaux() <= this.max_orange && mutation.getTaux() > this.min_orange) {
             rec = rec_orange(19, 2);
-        }
-        else {
+        } else {
             rec = rec_rouge(19, 2);
         }
 
         gene_pane.getChildren().add(rec);
 
 
-        gene_pane.setTopAnchor(rec,1.0);
-        gene_pane.setLeftAnchor(rec, 150.0 + Double.valueOf(mutation.getPosition_nuc())/10);
+        gene_pane.setTopAnchor(rec, 1.0);
+        gene_pane.setLeftAnchor(rec, 150.0 + Double.valueOf(mutation.getPosition_nuc()) / 10);
 
     }
 
-    private Rectangle rect(int x, int height) {
-        Rectangle rec =new Rectangle(x, height);
+    /**
+     * Génération du rectangle correspondant au gène
+     *
+     * @param width
+     * @param height
+     * @return
+     */
+    private Rectangle rect(int width, int height) {
+        Rectangle rec = new Rectangle(width, height);
         rec.setFill(Color.WHITE);
         rec.setStroke(Color.BLACK);
         return rec;
     }
 
+    /**
+     * Génération du rectangle mutation rouge
+     *
+     * @param height
+     * @param width
+     * @return
+     */
     private Rectangle rec_rouge(int height, int width) {
-        Rectangle rec_rouge =new Rectangle(width, height);
-        rec_rouge.setFill(Color.rgb(255,0,0));
+        Rectangle rec_rouge = new Rectangle(width, height);
+        rec_rouge.setFill(Color.rgb(255, 0, 0));
         return rec_rouge;
     }
 
+    /**
+     * Génération du rectangle mutation orange
+     *
+     * @param height
+     * @param width
+     * @return
+     */
     private Rectangle rec_orange(int height, int width) {
-        Rectangle rec_rouge =new Rectangle(width, height);
+        Rectangle rec_rouge = new Rectangle(width, height);
         rec_rouge.setFill(Color.rgb(255, 153, 0));
         return rec_rouge;
     }
 
+    /**
+     * Génération du rectangle mutation vert
+     *
+     * @param height
+     * @param width
+     * @return
+     */
     private Rectangle rec_vert(int height, int width) {
-        Rectangle rec_vert =new Rectangle(width, height);
+        Rectangle rec_vert = new Rectangle(width, height);
         rec_vert.setFill(Color.GREEN);
         return rec_vert;
     }
 
+    /**
+     * Génération du label qui va accueillir nom + position de la mutation
+     *
+     * @param text
+     * @return
+     */
     private Label getLabelMutation(String text) {
         Label mutation = new Label(text);
         return mutation;
@@ -348,7 +418,7 @@ public class Controller_Interpreteur {
     }
 
     public void setMin_vert(Double min_vert) {
-        this.min_vert=min_vert;
+        this.min_vert = min_vert;
     }
 
     public void setMax_vert(Double max_vert) {

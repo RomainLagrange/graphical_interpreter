@@ -9,11 +9,15 @@ import javafx.stage.Stage;
 
 public class Main extends Application {
 
+    public static void main(String[] args) {
+        launch(args);
+    }
+
     @Override
-    public void start(Stage primaryStage) throws Exception{
+    public void start(Stage primaryStage) throws Exception {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("Accueil/Accueil.fxml"));
-        Parent root = (Parent)loader.load();
-        Controller_Accueil controller = (Controller_Accueil)loader.getController();
+        Parent root = (Parent) loader.load();
+        Controller_Accueil controller = (Controller_Accueil) loader.getController();
         controller.setFieldFomat();
         controller.setStage(primaryStage);
         primaryStage.setTitle("Accueil");
@@ -21,10 +25,5 @@ public class Main extends Application {
         primaryStage.setScene(scene);
         scene.getWindow().sizeToScene();
         primaryStage.show();
-    }
-
-
-    public static void main(String[] args) {
-        launch(args);
     }
 }

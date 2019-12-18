@@ -2,8 +2,6 @@ package Application.Accueil;
 
 import Application.Interpreteur.Controller_Interpreteur;
 import Application.Utils.TableUtils;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
@@ -20,65 +18,83 @@ import javafx.util.StringConverter;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.*;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.text.ParseException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.UnaryOperator;
 
+/**
+ * Controleur de la fenetre d'accueil
+ */
 public class Controller_Accueil {
 
+    /**
+     * Fenetre d'accueil
+     */
     private Stage myStage;
-    private ComboBox<String> comboBox;
-    private TextField textFieldCohort;
-    private CheckBox checkBoxGeneFilter;
-    private ComboBox<String> comboGene;
-    private ComboBox<String> comboGeneAnalysis;
 
-    public void setStage(Stage stage) {
-        myStage = stage;
-    }
+    /**
+     * ComboBox contenant la liste des différentes analyses possibles
+     */
+    private ComboBox<String> comboBox;
+
+    /**
+     * TextField pour saisir le pattern pour l'analyse de cohorte
+     */
+    private TextField textFieldCohort;
+
+    /**
+     * Checkbox utilisé pour préciser si on veut ajouter l'analyse de cohorte sur un gène particulier
+     */
+    private CheckBox checkBoxGeneFilter;
+
+    /**
+     * Combobox contenant la liste des différents gènes présents dans le fichier TSV
+     */
+    private ComboBox<String> comboGene;
+
+    /**
+     * File du TSV utilisé pour l'analyse
+     */
+    private File table_file;
+
+    /**
+     * HashMap qui associe à chaque gène sa longueur et qui sera transmis au controller interpreteur
+     */
+    private HashMap<String, Integer> sizeGene;
+
+    /**
+     * HashMap qui contient le type de filtre a utilisé et les valeurs de celui-ci
+     * Ce filtre est transmis au controller interpreteur pour traitement
+     */
+    private HashMap<String, String> filtre;
+
 
     @FXML
     private TextField min_vert;
-
     @FXML
     private TextField max_vert;
-
     @FXML
     private TextField min_orange;
-
     @FXML
     private TextField max_orange;
-
     @FXML
     private TextField min_rouge;
-
     @FXML
     private TextField max_rouge;
-
     @FXML
     private Button button_valider;
-
-    @FXML
-    private Button button_table;
-
     @FXML
     private Button button_file;
-
     @FXML
     private Label file_path;
-
     @FXML
     private GridPane gridGene;
-
     @FXML
     private HBox hBoxMain;
-
-    private File table_file;
-
-    private HashMap<String, Integer> sizeGene;
-
-    private HashMap<String, String> filtre;
 
 
     /**
@@ -98,8 +114,9 @@ public class Controller_Accueil {
     /**
      * Fonction qui permet de générer un formater de décimaux en donnant en paramètre la valeur par défaut
      * Les décimaux sont arrondis 3 chiffres après la virgule et utilisent le '.' comme séparateur
-     * @param x
-     * @return
+     *
+     * @param x valeur par défaut
+     * @return textformateur de double
      */
     private TextFormatter<Double> getDoubleTextFormatter(Double x) {
         DecimalFormat decimalFormat = new DecimalFormat();
@@ -168,61 +185,61 @@ public class Controller_Accueil {
         Label annonceFiltre = new Label("Type of research");
         annonceFiltre.setStyle("-fx-font-weight: bold;");
         annonceFiltre.setPadding(new Insets(10, 10, 10, 10));
-        comboBox = new ComboBox();
+        comboBox = new ComboBox<>();
         comboBox.getItems().setAll("Complet Analysis", "Cohort Analysis", "Gene Analysis");
         comboBox.getSelectionModel().select(0);
 
         vBox.setPadding(new Insets(20, 10, 10, 10));
         VBox vBoxChoix = new VBox(10);
-        vBoxChoix.setPrefSize(300,200);
+        vBoxChoix.setPrefSize(300, 200);
         vBoxChoix.setStyle("-fx-border-color: black");
         filtre = new HashMap<>();
 
-        comboBox.valueProperty().addListener(new ChangeListener<String>() {
-
-            @Override
-            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                if (newValue.equals("Cohort Analysis")) {
+        comboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
+            switch (newValue) {
+                case "Cohort Analysis":
                     vBoxChoix.getChildren().clear();
                     boxCohortAnalysis(vBoxChoix);
-                }
-                else if (newValue.equals("Complet Analysis")){
+                    break;
+                case "Complet Analysis":
                     vBoxChoix.getChildren().clear();
-                }
-                else if (newValue.equals("Gene Analysis")){
+                    break;
+                case "Gene Analysis":
                     vBoxChoix.getChildren().clear();
                     boxGeneAnalysis(vBoxChoix);
-                }
+                    break;
             }
         });
 
 
-        vBox.getChildren().addAll(annonceFiltre, comboBox,vBoxChoix);
+        vBox.getChildren().addAll(annonceFiltre, comboBox, vBoxChoix);
         this.hBoxMain.getChildren().add(vBox);
     }
 
     /**
      * Méthode qui génère la box pour le choix d'une analyse d'un gène particulier
-     * @param vBoxChoix
+     *
+     * @param vBoxChoix vbox du filtre
      */
-    private void boxGeneAnalysis(VBox vBoxChoix){
+    private void boxGeneAnalysis(VBox vBoxChoix) {
         HBox ligne3 = new HBox(10);
         ligne3.setPadding(new Insets(20, 10, 10, 10));
         ligne3.setAlignment(Pos.CENTER);
         Label label3 = new Label("Gene name");
-        comboGeneAnalysis = new ComboBox<>();
-        for (String gene :sizeGene.keySet() ) {
-            comboGeneAnalysis.getItems().add(gene);
+        comboGene = new ComboBox<>();
+        for (String gene : sizeGene.keySet()) {
+            comboGene.getItems().add(gene);
         }
-        comboGeneAnalysis.getSelectionModel().select(0);
-        ligne3.getChildren().addAll(label3, comboGeneAnalysis);
+        comboGene.getSelectionModel().select(0);
+        ligne3.getChildren().addAll(label3, comboGene);
         vBoxChoix.getChildren().addAll(ligne3);
     }
 
     /**
      * Méthode qui génère la box pour le choix d'une analyse de cohorte
      * Si on coche la checkbox, affiche le choix d'un gène spécifique pour l'analyse
-     * @param vBoxChoix
+     *
+     * @param vBoxChoix vbox du filtre
      */
     private void boxCohortAnalysis(VBox vBoxChoix) {
         HBox ligne1 = new HBox(10);
@@ -240,38 +257,35 @@ public class Controller_Accueil {
         Label label2 = new Label("Add gene filter ");
         ligne2.getChildren().addAll(label2, checkBoxGeneFilter);
 
-        vBoxChoix.getChildren().addAll(ligne1,ligne2);
+        vBoxChoix.getChildren().addAll(ligne1, ligne2);
 
-        checkBoxGeneFilter.selectedProperty().addListener(new ChangeListener<Boolean>() {
-            @Override
-            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                if (newValue) {
-                    HBox ligne3 = new HBox(10);
-                    ligne3.setPadding(new Insets(20, 10, 10, 10));
-                    ligne3.setAlignment(Pos.CENTER);
-                    Label label3 = new Label("Gene name");
-                    comboGene = new ComboBox<>();
-                    for (String gene :sizeGene.keySet() ) {
-                        comboGene.getItems().add(gene);
-                    }
-                    comboGene.getSelectionModel().select(0);
-                    ligne3.getChildren().addAll(label3, comboGene);
-                    vBoxChoix.getChildren().addAll(ligne3);
+        checkBoxGeneFilter.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue) {
+                HBox ligne3 = new HBox(10);
+                ligne3.setPadding(new Insets(20, 10, 10, 10));
+                ligne3.setAlignment(Pos.CENTER);
+                Label label3 = new Label("Gene name");
+                comboGene = new ComboBox<>();
+                for (String gene : sizeGene.keySet()) {
+                    comboGene.getItems().add(gene);
                 }
+                comboGene.getSelectionModel().select(0);
+                ligne3.getChildren().addAll(label3, comboGene);
+                vBoxChoix.getChildren().addAll(ligne3);
             }
         });
     }
 
     /**
      * Méthode qui permet de récupérer le node d'un gridpane en donnant ses coordonées x/ y dans celui-ci
-     * @param gridPane
-     * @param col
-     * @param row
-     * @return
+     *
+     * @param gridPane gridpane dont on veut récupérer le node
+     * @param row ligne
+     * @return node
      */
-    private Node getNodeFromGridPane(GridPane gridPane, int col, int row) {
+    private Node getNodeFromGridPane(GridPane gridPane, int row) {
         for (Node node : gridPane.getChildren()) {
-            if (GridPane.getColumnIndex(node) == col && GridPane.getRowIndex(node) == row) {
+            if (GridPane.getColumnIndex(node) == 1 && GridPane.getRowIndex(node) == row) {
                 return node;
             }
         }
@@ -290,13 +304,9 @@ public class Controller_Accueil {
             nom.setId(gene);
             nom.setPrefWidth(150);
             TextField taille_gene = new TextField("3000");
-            taille_gene.textProperty().addListener(new ChangeListener<String>() {
-                @Override
-                public void changed(ObservableValue<? extends String> observable, String oldValue,
-                                    String newValue) {
-                    if (!newValue.matches("\\d*")) {
-                        taille_gene.setText(newValue.replaceAll("[^\\d]", ""));
-                    }
+            taille_gene.textProperty().addListener((observable, oldValue, newValue) -> {
+                if (!newValue.matches("\\d*")) {
+                    taille_gene.setText(newValue.replaceAll("[^\\d]", ""));
                 }
             });
             taille_gene.setPrefWidth(70);
@@ -314,38 +324,38 @@ public class Controller_Accueil {
     private void nextWindow() {
         generateFiltreMap();
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/Application/Interpreteur/Interpreteur.fxml"));
-            setGeneSize();
-            loader.setControllerFactory((Class<?> controllerType) -> {
-                if (controllerType == Controller_Interpreteur.class) {
-                    Controller_Interpreteur controller = new Controller_Interpreteur();
-                    controller.setMin_vert(Double.valueOf(this.min_vert.getText()));
-                    controller.setMax_vert(Double.valueOf(this.max_vert.getText()));
-                    controller.setMin_orange(Double.valueOf(this.min_orange.getText()));
-                    controller.setMax_orange(Double.valueOf(this.max_orange.getText()));
-                    controller.setMin_rouge(Double.valueOf(this.min_rouge.getText()));
-                    controller.setMax_rouge(Double.valueOf(this.max_rouge.getText()));
-                    controller.setSizeGene(this.sizeGene);
-                    controller.setTable_file(this.table_file);
-                    controller.setFiltre(this.filtre);
-                    return controller;
-                } else {
-                    try {
-                        return controllerType.newInstance();
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
+        setGeneSize();
+        loader.setControllerFactory((Class<?> controllerType) -> {
+            if (controllerType == Controller_Interpreteur.class) {
+                Controller_Interpreteur controller = new Controller_Interpreteur();
+                controller.setMin_vert(Double.valueOf(this.min_vert.getText()));
+                controller.setMax_vert(Double.valueOf(this.max_vert.getText()));
+                controller.setMin_orange(Double.valueOf(this.min_orange.getText()));
+                controller.setMax_orange(Double.valueOf(this.max_orange.getText()));
+                controller.setMin_rouge(Double.valueOf(this.min_rouge.getText()));
+                controller.setMax_rouge(Double.valueOf(this.max_rouge.getText()));
+                controller.setSizeGene(this.sizeGene);
+                controller.setTable_file(this.table_file);
+                controller.setFiltre(this.filtre);
+                return controller;
+            } else {
+                try {
+                    return controllerType.newInstance();
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
                 }
-            });
-            Scene scene = null;
-            try {
-                scene = new Scene(loader.load(), 1000, 600);
-            } catch (IOException e) {
-                e.printStackTrace();
             }
-            Stage stage = new Stage();
-            stage.setTitle("Analyse");
-            stage.setScene(scene);
-            stage.show();
+        });
+        Scene scene = null;
+        try {
+            scene = new Scene(loader.load(), 1000, 600);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        Stage stage = new Stage();
+        stage.setTitle("Analyse");
+        stage.setScene(scene);
+        stage.show();
     }
 
     /**
@@ -353,19 +363,17 @@ public class Controller_Accueil {
      */
     private void generateFiltreMap() {
         filtre = new HashMap<>();
-        if (comboBox.getSelectionModel().getSelectedItem().equals("Gene Analysis")){
-            filtre.put("analysis","gene");
-            filtre.put("gene",comboGeneAnalysis.getValue());
-        }
-        else if (comboBox.getSelectionModel().getSelectedItem().equals("Cohort Analysis")){
-            filtre.put("analysis","cohort");
-            filtre.put("cohort",textFieldCohort.getText());
-            if (checkBoxGeneFilter.isSelected()){
-                filtre.put("gene",comboGene.getValue());
+        if (comboBox.getSelectionModel().getSelectedItem().equals("Gene Analysis")) {
+            filtre.put("analysis", "gene");
+            filtre.put("gene", comboGene.getValue());
+        } else if (comboBox.getSelectionModel().getSelectedItem().equals("Cohort Analysis")) {
+            filtre.put("analysis", "cohort");
+            filtre.put("cohort", textFieldCohort.getText());
+            if (checkBoxGeneFilter.isSelected()) {
+                filtre.put("gene", comboGene.getValue());
             }
-        }
-        else {
-            filtre.put("analysis","complet");
+        } else {
+            filtre.put("analysis", "complet");
         }
     }
 
@@ -375,7 +383,7 @@ public class Controller_Accueil {
     private void setGeneSize() {
         int i = 0;
         for (String gene : this.sizeGene.keySet()) {
-            this.sizeGene.put(gene, Integer.valueOf(((TextField) getNodeFromGridPane(this.gridGene, 1, i)).getText()));
+            this.sizeGene.put(gene, Integer.valueOf(((TextField) Objects.requireNonNull(getNodeFromGridPane(this.gridGene, i))).getText()));
             i++;
         }
     }
@@ -383,6 +391,7 @@ public class Controller_Accueil {
     /**
      * Permet d'ouvrir un explorateur pour choisir le fichier tsv qui devra être analysé
      */
+    @FXML
     private void loadTSV() {
         FileChooser fileChooser = new FileChooser();
         File file = fileChooser.showOpenDialog(this.myStage);
@@ -390,10 +399,7 @@ public class Controller_Accueil {
         this.file_path.setText(file.getName());
     }
 
-    @FXML
-    private void choisirFichier() {
-        button_table.setOnMouseClicked((event) -> {
-            loadTSV();
-        });
+    public void setStage(Stage stage) {
+        myStage = stage;
     }
 }
