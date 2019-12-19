@@ -6,7 +6,9 @@ import Application.Utils.TableUtils;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.SnapshotParameters;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
@@ -70,11 +72,21 @@ public class Controller_Interpreteur {
     @FXML
     private VBox vbox;
 
+    @FXML
+    private Button export;
+
 
     @FXML
     private void initialize() {
         Platform.runLater(() -> {
             setLabels();
+
+            if (this.filtre.get("analysis").equals("complet")){
+                export.setOnAction(e -> saveBigImage());
+            }
+            else{
+                export.setOnAction(e -> saveImage());
+            }
 
             List<String> listGenes = getListGenes(this.tsv);
             List<Patient> listPatients = getListPatient(this.tsv);
@@ -89,6 +101,40 @@ public class Controller_Interpreteur {
      * Méthode qui permet d'exporter le contenu de l'anchorpane en fichier png
      */
     @FXML
+    private void saveBigImage() {
+        FileChooser fileChooser = new FileChooser();
+
+        //Prompt user to select a file
+        File file = fileChooser.showSaveDialog(null);
+        new File(file.getPath()).mkdir();
+
+        int i = 1;
+        for (Node node:this.vbox.getChildren()
+        ) {
+            if (node instanceof VBox){
+                BufferedImage bufferedImage = new BufferedImage(550, 400, BufferedImage.TYPE_INT_ARGB);
+
+                WritableImage snapshot = node.snapshot(new SnapshotParameters(), null);
+                ((VBox)node).getChildren().add(new ImageView(snapshot));
+
+                BufferedImage image;
+                image = fromFXImage(snapshot, bufferedImage);
+
+                try {
+                    Graphics2D gd = (Graphics2D) image.getGraphics();
+                    gd.translate(((VBox)node).getWidth(), ((VBox)node).getHeight());
+                    ImageIO.write(image, "png", new File(file.getPath() + "/part" + i));
+                } catch (IOException ignored) {
+                }
+            }
+            i++;
+        }
+    }
+
+    /**
+     * Méthode qui permet d'exporter le contenu de l'anchorpane en fichier png
+     */
+    @FXML
     private void saveImage() {
         BufferedImage bufferedImage = new BufferedImage(550, 400, BufferedImage.TYPE_INT_ARGB);
 
@@ -97,6 +143,7 @@ public class Controller_Interpreteur {
 
         BufferedImage image;
         image = fromFXImage(snapshot, bufferedImage);
+
         try {
             Graphics2D gd = (Graphics2D) image.getGraphics();
             gd.translate(pane_interpreteur.getWidth(), pane_interpreteur.getHeight());
@@ -110,7 +157,6 @@ public class Controller_Interpreteur {
         } catch (IOException ignored) {
         }
     }
-
 
     /**
      * Méthode qui va générer tous les gènes avec leurs mutations pour chaque cas d'analyse différents
