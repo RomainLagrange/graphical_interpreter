@@ -4,38 +4,45 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.Rectangle?>
-<ScrollPane xmlns:fx="http://javafx.com/fxml/1" prefHeight="400.0" prefWidth="600.0"
-            xmlns="http://javafx.com/javafx/8.0.171" fx:controller="Application.Interpreteur.Controller_Interpreteur">
-    <AnchorPane fx:id="pane_interpreteur" prefHeight="400.0" prefWidth="600.0">
+<ScrollPane prefHeight="512.0" prefWidth="719.0" xmlns="http://javafx.com/javafx/8.0.171"
+            xmlns:fx="http://javafx.com/fxml/1" fx:controller="Application.Interpreteur.Controller_Interpreteur">
+    <AnchorPane fx:id="pane_interpreteur" prefHeight="501.0" prefWidth="718.0">
         <HBox layoutX="23.0" layoutY="9.0" prefHeight="60.0" prefWidth="510.0" spacing="20">
             <Label fx:id="label_couleur" prefHeight="60.0" prefWidth="300.0" text="Label"/>
             <Label fx:id="label_filtre" prefHeight="60.0" prefWidth="200.0" text="Label"/>
         </HBox>
+        <VBox layoutX="36.0" layoutY="184.0" spacing="50">
+            <children>
+                <VBox fx:id="vbox" prefHeight="199.0" prefWidth="647.0" spacing="30"/>
+                <VBox fx:id="vboxMini" prefHeight="78.0" prefWidth="647.0" spacing="10"/>
+            </children>
+        </VBox>
         <Label fx:id="label_file" layoutX="23.0" layoutY="88.0" prefHeight="20.0" prefWidth="517.0" text="Label"/>
-        <VBox fx:id="vbox" layoutX="23.0" layoutY="186.0" prefHeight="199.0" prefWidth="562.0" spacing="30"/>
-        <HBox alignment="CENTER" layoutX="10.0" layoutY="119.0" prefHeight="57.0"
-              prefWidth="331.0">
+        <HBox alignment="CENTER" layoutX="10.0" layoutY="119.0" prefHeight="57.0" prefWidth="331.0">
             <Label alignment="BASELINE_LEFT" contentDisplay="CENTER" prefHeight="57.0" prefWidth="145.0"
-                   text="Echelle normale">
+                   text="Normal scale">
                 <padding>
                     <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
                 </padding>
             </Label>
-            <Rectangle arcHeight="5.0" arcWidth="5.0" fill="WHITE" height="3.0" stroke="BLACK"
-                       strokeType="INSIDE" width="100.0"/>
+            <Rectangle arcHeight="5.0" arcWidth="5.0" fill="WHITE" height="3.0" stroke="BLACK" strokeType="INSIDE"
+                       width="100.0"/>
             <Label alignment="CENTER" contentDisplay="RIGHT" prefHeight="61.0" prefWidth="62.0" text="100pb"/>
         </HBox>
-        <HBox alignment="CENTER" layoutX="304.0" layoutY="119.0" prefHeight="57.0"
-              prefWidth="277.0">
-            <Label prefHeight="57.0" prefWidth="117.0" text="Echelle mini">
+        <HBox alignment="CENTER" layoutX="290.0" layoutY="119.0" prefHeight="57.0" prefWidth="277.0">
+            <Label prefHeight="57.0" prefWidth="117.0" text="Mini scale">
                 <padding>
                     <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
                 </padding>
             </Label>
-            <Rectangle arcHeight="5.0" arcWidth="5.0" fill="WHITE" height="3.0" stroke="BLACK"
-                       strokeType="INSIDE" width="10.0"/>
+            <Rectangle arcHeight="5.0" arcWidth="5.0" fill="WHITE" height="3.0" stroke="BLACK" strokeType="INSIDE"
+                       width="10.0"/>
             <Label alignment="CENTER" contentDisplay="RIGHT" prefHeight="61.0" prefWidth="62.0" text="100pb"/>
         </HBox>
-        <Button fx:id="export" layoutX="533.0" layoutY="26.0" mnemonicParsing="false" text="Export"/>
+        <Button fx:id="exportTotal" layoutX="533.0" layoutY="26.0" mnemonicParsing="false" prefHeight="26.0"
+                prefWidth="137.0" text="Total Export"/>
+        <Button fx:id="exportPatient" layoutX="533.0" layoutY="56.0" mnemonicParsing="false" text="Per Patient Export"/>
+        <Button fx:id="exportDixieme" layoutX="533.0" layoutY="85.0" mnemonicParsing="false" prefHeight="26.0"
+                prefWidth="136.0" text="1/10 Export"/>
     </AnchorPane>
 </ScrollPane>

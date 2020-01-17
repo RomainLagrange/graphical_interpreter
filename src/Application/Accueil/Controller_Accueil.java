@@ -15,12 +15,14 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
+import javafx.util.converter.IntegerStringConverter;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -70,7 +72,14 @@ public class Controller_Accueil {
      * HashMap qui contient le type de filtre a utilisé et les valeurs de celui-ci
      * Ce filtre est transmis au controller interpreteur pour traitement
      */
-    private HashMap<String, String> filtre;
+    private HashMap<String, Object> filtre;
+
+    /**
+     * File qui correspond aux données metadata qui permettent de filtrer les patients
+     */
+    private File filtre_file;
+
+    private VBox boxMetadata;
 
 
     @FXML
@@ -90,11 +99,27 @@ public class Controller_Accueil {
     @FXML
     private Button button_file;
     @FXML
+    private Button button_file1;
+    @FXML
     private Label file_path;
+    @FXML
+    private Label file_path1;
+    @FXML
+    private Button buttonOkMetadata;
     @FXML
     private GridPane gridGene;
     @FXML
-    private HBox hBoxMain;
+    private ScrollPane scrollMeta;
+    @FXML
+    private VBox filtreVBox;
+    @FXML
+    private Label geneName;
+    @FXML
+    private Label geneSize;
+    @FXML
+    private ScrollPane scrollGene;
+    private List<String> listMetadataFilter;
+    private HashMap<String, String> typeMetadata;
 
 
     /**
@@ -172,16 +197,30 @@ public class Controller_Accueil {
                 this.sizeGene.put(gene, 0);
             }
             createLabelTailleGene();
-            generateFiltreBox();
+            generateFiltre();
+            makeChildrenVisible();
         }));
+    }
+
+    /**
+     * Méthode qui permet de rendre les différents champs visibles après selection du fichier TSV
+     * des mutations
+     */
+    private void makeChildrenVisible() {
+        this.geneName.setVisible(true);
+        this.geneSize.setVisible(true);
+        this.scrollGene.setVisible(true);
+        this.button_file1.setVisible(true);
+        this.buttonOkMetadata.setVisible(true);
+        this.scrollMeta.setVisible(true);
+        this.button_valider.setVisible(true);
     }
 
     /**
      * Méthode qui permet de générer la box contenant les différents types d'analyses
      * Le contenu change selon le choix de la comboBox
      */
-    private void generateFiltreBox() {
-        VBox vBox = new VBox(10);
+    private void generateFiltre() {
         Label annonceFiltre = new Label("Type of research");
         annonceFiltre.setStyle("-fx-font-weight: bold;");
         annonceFiltre.setPadding(new Insets(10, 10, 10, 10));
@@ -189,9 +228,8 @@ public class Controller_Accueil {
         comboBox.getItems().setAll("Complet Analysis", "Cohort Analysis", "Gene Analysis");
         comboBox.getSelectionModel().select(0);
 
-        vBox.setPadding(new Insets(20, 10, 10, 10));
-        VBox vBoxChoix = new VBox(10);
-        vBoxChoix.setPrefSize(300, 200);
+        VBox vBoxChoix = new VBox(5);
+        vBoxChoix.setPadding(new Insets(10, 10, 10, 10));
         vBoxChoix.setStyle("-fx-border-color: black");
         filtre = new HashMap<>();
 
@@ -211,9 +249,16 @@ public class Controller_Accueil {
             }
         });
 
+        filtreVBox.getChildren().addAll(annonceFiltre, comboBox, vBoxChoix);
+    }
 
-        vBox.getChildren().addAll(annonceFiltre, comboBox, vBoxChoix);
-        this.hBoxMain.getChildren().add(vBox);
+    /**
+     * Methode qui permet de genererer la box metadata pour filtrer par la suite
+     */
+    @FXML
+    private void generateMetadata() {
+        generateBoxMetadata();
+        scrollMeta.setContent(boxMetadata);
     }
 
     /**
@@ -242,36 +287,35 @@ public class Controller_Accueil {
      * @param vBoxChoix vbox du filtre
      */
     private void boxCohortAnalysis(VBox vBoxChoix) {
-        HBox ligne1 = new HBox(10);
+        HBox ligne1 = new HBox(5);
         ligne1.setAlignment(Pos.CENTER);
-        ligne1.setPadding(new Insets(20, 10, 10, 10));
         Label label1 = new Label("First letters");
         textFieldCohort = new TextField("");
         textFieldCohort.setPromptText("ex : DA");
         ligne1.getChildren().addAll(label1, textFieldCohort);
 
-        HBox ligne2 = new HBox(10);
-        ligne2.setPadding(new Insets(20, 10, 10, 10));
+        HBox ligne2 = new HBox();
         ligne2.setAlignment(Pos.CENTER);
         checkBoxGeneFilter = new CheckBox();
         Label label2 = new Label("Add gene filter ");
         ligne2.getChildren().addAll(label2, checkBoxGeneFilter);
 
         vBoxChoix.getChildren().addAll(ligne1, ligne2);
+        HBox ligne3 = new HBox(5);
+        ligne3.setAlignment(Pos.CENTER);
+        Label label3 = new Label("Gene name");
+        comboGene = new ComboBox<>();
+        for (String gene : sizeGene.keySet()) {
+            comboGene.getItems().add(gene);
+        }
+        comboGene.getSelectionModel().select(0);
+        ligne3.getChildren().addAll(label3, comboGene);
 
-        checkBoxGeneFilter.selectedProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue) {
-                HBox ligne3 = new HBox(10);
-                ligne3.setPadding(new Insets(20, 10, 10, 10));
-                ligne3.setAlignment(Pos.CENTER);
-                Label label3 = new Label("Gene name");
-                comboGene = new ComboBox<>();
-                for (String gene : sizeGene.keySet()) {
-                    comboGene.getItems().add(gene);
-                }
-                comboGene.getSelectionModel().select(0);
-                ligne3.getChildren().addAll(label3, comboGene);
-                vBoxChoix.getChildren().addAll(ligne3);
+        checkBoxGeneFilter.setOnAction(event -> {
+            if (checkBoxGeneFilter.isSelected()) {
+                vBoxChoix.getChildren().add(ligne3);
+            } else {
+                vBoxChoix.getChildren().remove(ligne3);
             }
         });
     }
@@ -280,7 +324,7 @@ public class Controller_Accueil {
      * Méthode qui permet de récupérer le node d'un gridpane en donnant ses coordonées x/ y dans celui-ci
      *
      * @param gridPane gridpane dont on veut récupérer le node
-     * @param row ligne
+     * @param row      ligne
      * @return node
      */
     private Node getNodeFromGridPane(GridPane gridPane, int row) {
@@ -375,6 +419,37 @@ public class Controller_Accueil {
         } else {
             filtre.put("analysis", "complet");
         }
+        for (Node lineFilter : boxMetadata.getChildren()){
+            if (((CheckBox)lineFilter.lookup("#checkbox")).isSelected()){
+                String key = ((Label)lineFilter.lookup("#nameMetadata")).getText();
+                for (String nameMeta : typeMetadata.keySet()){
+                    if (key.equals(nameMeta)){
+                        if (typeMetadata.get(key).equals("double")){
+                            HashMap<String, Double> valuesDouble = new HashMap<>();
+                            Double min = Double.valueOf(((TextField)lineFilter.lookup("#"+key+"min")).getText());
+                            Double max = Double.valueOf(((TextField)lineFilter.lookup("#"+key+"max")).getText());
+                            valuesDouble.put("min",min);
+                            valuesDouble.put("max",max);
+                            filtre.put(key,valuesDouble);
+                        }
+                        if (typeMetadata.get(key).equals("integer") || typeMetadata.get(key).equals("date")){
+                            HashMap<String, Integer> valuesInteger = new HashMap<>();
+                            Integer min = Integer.valueOf(((TextField)lineFilter.lookup("#"+key+"min")).getText());
+                            Integer max = Integer.valueOf(((TextField)lineFilter.lookup("#"+key+"max")).getText());
+                            valuesInteger.put("min",min);
+                            valuesInteger.put("max",max);
+                            filtre.put(key,valuesInteger);
+                        }
+                        else if (typeMetadata.get(key).equals("word") || typeMetadata.get(key).equals("singleChar")){
+                            String input = ((TextField)lineFilter.lookup("#input")).getText();
+                            filtre.put(key,input);
+                        }
+                    }
+                }
+            }
+        }
+        System.out.println(filtre);
+
     }
 
     /**
@@ -399,7 +474,265 @@ public class Controller_Accueil {
         this.file_path.setText(file.getName());
     }
 
+    /**
+     * Méthode qui permet de charger le fichier de metadata
+     */
+    @FXML
+    private void loadTSVFiltre() {
+        FileChooser fileChooser = new FileChooser();
+        File file = fileChooser.showOpenDialog(this.myStage);
+        this.filtre_file = file;
+        this.file_path1.setText(file.getName());
+    }
+
+    /**
+     * Methode qui permet de genererer la Vbox qui contiendra les différentes options de filtre par rapport
+     * au fichier de metadata
+     *
+     * @return boxMetadata
+     */
+    private void generateBoxMetadata() {
+        boxMetadata = new VBox(15);
+        boxMetadata.setPadding(new Insets(10, 10, 10, 10));
+        ArrayList<List<String>> metadata = TableUtils.getTSV(this.filtre_file);
+
+        listMetadataFilter = new ArrayList<>();
+        for (String enTete : metadata.get(0)) {
+            if (!enTete.equals("SAMPLEID")) {
+                listMetadataFilter.add(enTete);
+            }
+        }
+
+        typeMetadata = createMetadataMap(metadata, listMetadataFilter);
+
+        for (String key : typeMetadata.keySet()) {
+            if (typeMetadata.get(key).equals("word")) {
+                HBox lineMetadata = hBoxWord(key);
+                boxMetadata.getChildren().add(lineMetadata);
+            } else if (typeMetadata.get(key).equals("singleChar")) {
+                HBox lineMetadata = hBoxSingleChar(key);
+                boxMetadata.getChildren().add(lineMetadata);
+            } else if (typeMetadata.get(key).equals("integer")) {
+                HBox lineMetadata = hBoxInt(key);
+                boxMetadata.getChildren().add(lineMetadata);
+            } else if (typeMetadata.get(key).equals("double")) {
+                HBox lineMetadata = hBoxDouble(key);
+                boxMetadata.getChildren().add(lineMetadata);
+            } else if (typeMetadata.get(key).equals("date")) {
+                HBox lineMetadata = hBoxDate(key);
+                boxMetadata.getChildren().add(lineMetadata);
+            }
+        }
+    }
+
+    private HBox hBoxWord(String key) {
+        HBox lineMetadata = new HBox(10);
+        lineMetadata.setAlignment(Pos.CENTER_LEFT);
+        Label nameMetadata = new Label(key);
+        nameMetadata.setId("nameMetadata");
+
+        CheckBox checkMeta = new CheckBox();
+        checkMeta.setId("checkbox");
+
+        lineMetadata.getChildren().addAll(nameMetadata, checkMeta);
+
+        TextField inputMot = new TextField();
+        inputMot.setId("input");
+
+        checkMeta.setOnAction(event -> {
+            if (checkMeta.isSelected()) {
+                lineMetadata.getChildren().add(inputMot);
+            } else {
+                lineMetadata.getChildren().remove(inputMot);
+            }
+        });
+        return lineMetadata;
+    }
+
+    private HBox hBoxInt(String key) {
+        HBox lineMetadata = new HBox(10);
+        lineMetadata.setAlignment(Pos.CENTER_LEFT);
+        Label nameMetadata = new Label(key);
+        nameMetadata.setId("nameMetadata");
+
+        CheckBox checkMeta = new CheckBox();
+        checkMeta.setId("checkbox");
+
+        lineMetadata.getChildren().addAll(nameMetadata, checkMeta);
+
+        HBox lineMetadataInt = new HBox(5);
+
+        TextField inputIntMin = getTextFieldIntFormated();
+        inputIntMin.setId(key+"min");
+        TextField inputIntMax = getTextFieldIntFormated();
+        inputIntMax.setId(key+"max");
+        Label separator = new Label("< Value <");
+
+        lineMetadataInt.getChildren().addAll(inputIntMin, separator, inputIntMax);
+        lineMetadataInt.setAlignment(Pos.CENTER_LEFT);
+
+        checkMeta.setOnAction(event -> {
+            if (checkMeta.isSelected()) {
+                lineMetadata.getChildren().add(lineMetadataInt);
+            } else {
+                lineMetadata.getChildren().remove(lineMetadataInt);
+            }
+        });
+        return lineMetadata;
+    }
+
+    private HBox hBoxDate(String key) {
+        HBox lineMetadata = new HBox(10);
+        lineMetadata.setAlignment(Pos.CENTER_LEFT);
+        Label nameMetadata = new Label(key);
+        nameMetadata.setId("nameMetadata");
+
+        CheckBox checkMeta = new CheckBox();
+        checkMeta.setId("checkbox");
+
+        lineMetadata.getChildren().addAll(nameMetadata, checkMeta);
+
+        HBox lineMetadataDate = new HBox(5);
+
+        TextField inputIntMin = getTextFieldIntFormated();
+        inputIntMin.setPrefWidth(80);
+        inputIntMin.setId(key+"min");
+        TextField inputIntMax = getTextFieldIntFormated();
+        inputIntMax.setPrefWidth(80);
+        inputIntMax.setId(key+"max");
+        Label from = new Label("From");
+        Label to = new Label("To");
+
+        lineMetadataDate.getChildren().addAll(from, inputIntMin, to, inputIntMax);
+        lineMetadataDate.setAlignment(Pos.CENTER_LEFT);
+
+        checkMeta.setOnAction(event -> {
+            if (checkMeta.isSelected()) {
+                lineMetadata.getChildren().add(lineMetadataDate);
+            } else {
+                lineMetadata.getChildren().remove(lineMetadataDate);
+            }
+        });
+        return lineMetadata;
+    }
+
+    private HBox hBoxDouble(String key) {
+        HBox lineMetadata = new HBox(10);
+        lineMetadata.setAlignment(Pos.CENTER_LEFT);
+        Label nameMetadata = new Label(key);
+        nameMetadata.setId("nameMetadata");
+
+        CheckBox checkMeta = new CheckBox();
+        checkMeta.setId("checkbox");
+
+        lineMetadata.getChildren().addAll(nameMetadata, checkMeta);
+
+        HBox lineMetadataDouble = new HBox(5);
+
+        TextField inputDoubleMin = new TextField();
+        inputDoubleMin.setTextFormatter(getDoubleTextFormatter(0.0));
+        inputDoubleMin.setPrefWidth(80);
+        inputDoubleMin.setId(key+"min");
+        TextField inputDoubleMax = new TextField();
+        inputDoubleMax.setTextFormatter(getDoubleTextFormatter(100.0));
+        inputDoubleMax.setPrefWidth(80);
+        inputDoubleMax.setId(key+"max");
+        Label value = new Label("< Value <");
+
+        lineMetadataDouble.getChildren().addAll(inputDoubleMin, value, inputDoubleMax);
+        lineMetadataDouble.setAlignment(Pos.CENTER_LEFT);
+
+        checkMeta.setOnAction(event -> {
+            if (checkMeta.isSelected()) {
+                lineMetadata.getChildren().add(lineMetadataDouble);
+            } else {
+                lineMetadata.getChildren().remove(lineMetadataDouble);
+            }
+        });
+        return lineMetadata;
+    }
+
+    private HBox hBoxSingleChar(String key) {
+        HBox lineMetadata = new HBox(10);
+        lineMetadata.setAlignment(Pos.CENTER_LEFT);
+        Label nameMetadata = new Label(key);
+        nameMetadata.setId("nameMetadata");
+
+        CheckBox checkMeta = new CheckBox();
+        checkMeta.setId("checkbox");
+
+        lineMetadata.getChildren().addAll(nameMetadata, checkMeta);
+
+        TextField inputLettre = new TextField();
+        inputLettre.setPrefWidth(40);
+        inputLettre.setTextFormatter(new TextFormatter<String>((TextFormatter.Change change) -> {
+            String newText = change.getControlNewText();
+            if (newText.length() > 1) {
+                return null;
+            } else {
+                return change;
+            }
+        }));
+        inputLettre.setId("input");
+
+        checkMeta.setOnAction(event -> {
+            if (checkMeta.isSelected()) {
+                lineMetadata.getChildren().add(inputLettre);
+            } else {
+                lineMetadata.getChildren().remove(inputLettre);
+            }
+        });
+        return lineMetadata;
+    }
+
+    /**
+     * Méthode qui permet de remplir la hashmap metadata reférence pour savoir quel est le bon type de donnée
+     * pour chaque donnée du fichier metadata
+     *
+     * @param metadata     Hashmap metadata
+     * @param listMetadata Liste des valeurs dans le metadata
+     * @return HashMap remplie
+     */
+    private HashMap<String, String> createMetadataMap(ArrayList<List<String>> metadata, List<String> listMetadata) {
+        HashMap<String, String> typeMetadata = new HashMap<>();
+        String patternSingleChar = "[a-zA-Z]";
+        String patternWord = "[a-zA-Z]{2,}";
+        String patternDouble = "[-+]?[0-9]*\\.[0-9]+([eE][-+]?[0-9]+)?";
+        String patternInteger = "\\d+";
+        String patternDate = "\\d{6}";
+
+        for (int i = 1; i < metadata.get(1).size(); i++) {
+            if (metadata.get(1).get(i).matches(patternSingleChar)) {
+                typeMetadata.put(listMetadata.get(i - 1), "singleChar");
+            } else if (metadata.get(1).get(i).matches(patternDouble)) {
+                typeMetadata.put(listMetadata.get(i - 1), "double");
+            } else if (metadata.get(1).get(i).matches(patternDate)) {
+                typeMetadata.put(listMetadata.get(i - 1), "date");
+            } else if (metadata.get(1).get(i).matches(patternWord)) {
+                typeMetadata.put(listMetadata.get(i - 1), "word");
+            } else if (metadata.get(1).get(i).matches(patternInteger)) {
+                typeMetadata.put(listMetadata.get(i - 1), "integer");
+            }
+        }
+        return typeMetadata;
+    }
+
+    /**
+     * Méthode qui permet de retourner un texfield formaté pour n'entrer que des chiffres
+     *
+     * @return TextField
+     */
+    private TextField getTextFieldIntFormated() {
+        TextField inputInt = new TextField();
+        UnaryOperator<TextFormatter.Change> integerOnlyKeyboardInput = change -> change.getText().matches("[0-9]*") ? change : null;
+        StringConverter<Integer> integerValueConverter = new IntegerStringConverter();
+        TextFormatter<Integer> integerOnlyFormatter = new TextFormatter<>(integerValueConverter, 0, integerOnlyKeyboardInput);
+        inputInt.setTextFormatter(integerOnlyFormatter);
+        return inputInt;
+    }
+
     public void setStage(Stage stage) {
         myStage = stage;
     }
+
 }

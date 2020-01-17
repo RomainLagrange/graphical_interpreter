@@ -1,5 +1,6 @@
 package Application.Interpreteur.Object;
 
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -10,6 +11,8 @@ public class Patient {
     private String identifiant;
 
     private List<Mutation> mutationList;
+
+    private HashMap<String,Object> metadata;
 
     public Patient(String identifiant) {
         this.identifiant = identifiant;
@@ -25,5 +28,13 @@ public class Patient {
 
     public void setMutationList(List<Mutation> mutationList) {
         this.mutationList = mutationList;
+    }
+
+    public HashMap<String, Object> getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(HashMap<String, Object> metadata) {
+        this.metadata = metadata;
     }
 }

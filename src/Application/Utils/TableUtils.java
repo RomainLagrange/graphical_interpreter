@@ -2,10 +2,13 @@ package Application.Utils;
 
 import Application.Interpreteur.Object.Mutation;
 import Application.Interpreteur.Object.Patient;
+import com.google.gson.Gson;
 import com.univocity.parsers.tsv.TsvParser;
 import com.univocity.parsers.tsv.TsvParserSettings;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -126,4 +129,5 @@ public class TableUtils {
         }
         patientList.remove(0);
     }
+
 }
