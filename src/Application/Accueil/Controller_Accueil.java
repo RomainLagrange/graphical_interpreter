@@ -79,6 +79,21 @@ public class Controller_Accueil {
      */
     private File filtre_file;
 
+    /**
+     * Liste qui contient le nom des différentes metadata
+     */
+    private List<String> listMetadataFilter;
+
+    /**
+     * HashMap qui associe a chaque champs du metadata le type de donnée associé
+     */
+    private HashMap<String, String> typeMetadata;
+
+    /**
+     * Contenu du fichier metadata
+     */
+    private ArrayList<List<String>> metadata;
+
     private VBox boxMetadata;
 
 
@@ -118,8 +133,6 @@ public class Controller_Accueil {
     private Label geneSize;
     @FXML
     private ScrollPane scrollGene;
-    private List<String> listMetadataFilter;
-    private HashMap<String, String> typeMetadata;
 
 
     /**
@@ -378,6 +391,8 @@ public class Controller_Accueil {
                 controller.setMax_orange(Double.valueOf(this.max_orange.getText()));
                 controller.setMin_rouge(Double.valueOf(this.min_rouge.getText()));
                 controller.setMax_rouge(Double.valueOf(this.max_rouge.getText()));
+                controller.setMetadata(this.metadata);
+                controller.setTypeMetadata(this.typeMetadata);
                 controller.setSizeGene(this.sizeGene);
                 controller.setTable_file(this.table_file);
                 controller.setFiltre(this.filtre);
@@ -419,37 +434,39 @@ public class Controller_Accueil {
         } else {
             filtre.put("analysis", "complet");
         }
-        for (Node lineFilter : boxMetadata.getChildren()){
-            if (((CheckBox)lineFilter.lookup("#checkbox")).isSelected()){
-                String key = ((Label)lineFilter.lookup("#nameMetadata")).getText();
-                for (String nameMeta : typeMetadata.keySet()){
-                    if (key.equals(nameMeta)){
-                        if (typeMetadata.get(key).equals("double")){
-                            HashMap<String, Double> valuesDouble = new HashMap<>();
-                            Double min = Double.valueOf(((TextField)lineFilter.lookup("#"+key+"min")).getText());
-                            Double max = Double.valueOf(((TextField)lineFilter.lookup("#"+key+"max")).getText());
-                            valuesDouble.put("min",min);
-                            valuesDouble.put("max",max);
-                            filtre.put(key,valuesDouble);
-                        }
-                        if (typeMetadata.get(key).equals("integer") || typeMetadata.get(key).equals("date")){
-                            HashMap<String, Integer> valuesInteger = new HashMap<>();
-                            Integer min = Integer.valueOf(((TextField)lineFilter.lookup("#"+key+"min")).getText());
-                            Integer max = Integer.valueOf(((TextField)lineFilter.lookup("#"+key+"max")).getText());
-                            valuesInteger.put("min",min);
-                            valuesInteger.put("max",max);
-                            filtre.put(key,valuesInteger);
-                        }
-                        else if (typeMetadata.get(key).equals("word") || typeMetadata.get(key).equals("singleChar")){
-                            String input = ((TextField)lineFilter.lookup("#input")).getText();
-                            filtre.put(key,input);
+        HashMap<String,Object> metadataFiltre = new HashMap<>();
+        if (!file_path1.getText().isEmpty()){
+            for (Node lineFilter : boxMetadata.getChildren()){
+                if (((CheckBox)lineFilter.lookup("#checkbox")).isSelected()){
+                    String key = ((Label)lineFilter.lookup("#nameMetadata")).getText();
+                    for (String nameMeta : typeMetadata.keySet()){
+                        if (key.equals(nameMeta)){
+                            if (typeMetadata.get(key).equals("double")){
+                                HashMap<String, Double> valuesDouble = new HashMap<>();
+                                Double min = Double.valueOf(((TextField)lineFilter.lookup("#"+key+"min")).getText());
+                                Double max = Double.valueOf(((TextField)lineFilter.lookup("#"+key+"max")).getText());
+                                valuesDouble.put("min",min);
+                                valuesDouble.put("max",max);
+                                metadataFiltre.put(key,valuesDouble);
+                            }
+                            if (typeMetadata.get(key).equals("integer") || typeMetadata.get(key).equals("date")){
+                                HashMap<String, Integer> valuesInteger = new HashMap<>();
+                                Integer min = Integer.valueOf(((TextField)lineFilter.lookup("#"+key+"min")).getText());
+                                Integer max = Integer.valueOf(((TextField)lineFilter.lookup("#"+key+"max")).getText());
+                                valuesInteger.put("min",min);
+                                valuesInteger.put("max",max);
+                                metadataFiltre.put(key,valuesInteger);
+                            }
+                            else if (typeMetadata.get(key).equals("word") || typeMetadata.get(key).equals("singleChar")){
+                                String input = ((TextField)lineFilter.lookup("#input")).getText();
+                                metadataFiltre.put(key,input);
+                            }
                         }
                     }
                 }
             }
         }
-        System.out.println(filtre);
-
+        filtre.put("metadata", metadataFiltre);
     }
 
     /**
@@ -494,7 +511,7 @@ public class Controller_Accueil {
     private void generateBoxMetadata() {
         boxMetadata = new VBox(15);
         boxMetadata.setPadding(new Insets(10, 10, 10, 10));
-        ArrayList<List<String>> metadata = TableUtils.getTSV(this.filtre_file);
+        metadata = TableUtils.getTSV(this.filtre_file);
 
         listMetadataFilter = new ArrayList<>();
         for (String enTete : metadata.get(0)) {

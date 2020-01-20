@@ -5,12 +5,14 @@ import Application.Interpreteur.Object.Patient;
 import com.google.gson.Gson;
 import com.univocity.parsers.tsv.TsvParser;
 import com.univocity.parsers.tsv.TsvParserSettings;
+import javafx.scene.control.TextField;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -110,6 +112,49 @@ public class TableUtils {
         listInter = tsv.get(0);
         for (String i : listInter) {
             patientList.add(new Patient(i));
+        }
+        return patientList;
+    }
+    /**
+     * Méthode qui permet de récupérer la liste des Patients à partir du fichier TSV ainsi que les
+     * metadata si un fichier a été spécifié
+     * @param tsv File TSV
+     * @param metadata File metadata
+     * @return La liste des patients
+     */
+    public static List<Patient> getListPatientMetadata(List<List<String>> tsv, ArrayList<List<String>> metadata, HashMap<String, String> typeMetadata) {
+        List<Patient> patientList = new ArrayList<>();
+        List<String> listInter;
+
+        listInter = tsv.get(0);
+        for (String i : listInter) {
+            Patient patient = new Patient(i);
+            HashMap<String, Object> metadataPatient = new HashMap<>();
+            for (List<String> lineMetadata : metadata) {
+                if (!lineMetadata.get(0).equals("SAMPLEID")){
+                    if (lineMetadata.get(0).equals(patient.getIdentifiant())){
+                        for (int j =1; j<lineMetadata.size(); j++) {
+                            for (String nameMeta : typeMetadata.keySet()){
+                                if (metadata.get(0).get(j).equals(nameMeta)){
+                                    if (typeMetadata.get(metadata.get(0).get(j)).equals("double")){
+                                        metadataPatient.put(metadata.get(0).get(j),Double.valueOf(lineMetadata.get(j)));
+                                    }
+                                    if (typeMetadata.get(metadata.get(0).get(j)).equals("integer") || typeMetadata.get(metadata.get(0).get(j)).equals("date")){
+                                        metadataPatient.put(metadata.get(0).get(j),Integer.valueOf(lineMetadata.get(j)));
+                                    }
+                                    else if (typeMetadata.get(metadata.get(0).get(j)).equals("word") || typeMetadata.get(metadata.get(0).get(j)).equals("singleChar")){
+                                        metadataPatient.put(metadata.get(0).get(j),String.valueOf(lineMetadata.get(j)));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            patient.setMetadata(metadataPatient);
+            System.out.println(patient.getIdentifiant() + " : " + patient.getMetadata());
+            patientList.add(patient);
+
         }
         return patientList;
     }
