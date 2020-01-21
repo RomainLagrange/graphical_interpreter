@@ -2,14 +2,12 @@ package Application.Utils;
 
 import Application.Interpreteur.Object.Mutation;
 import Application.Interpreteur.Object.Patient;
-import com.google.gson.Gson;
 import com.univocity.parsers.tsv.TsvParser;
 import com.univocity.parsers.tsv.TsvParserSettings;
-import javafx.scene.control.TextField;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -152,7 +150,6 @@ public class TableUtils {
                 }
             }
             patient.setMetadata(metadataPatient);
-            System.out.println(patient.getIdentifiant() + " : " + patient.getMetadata());
             patientList.add(patient);
 
         }
@@ -173,6 +170,25 @@ public class TableUtils {
             patientList.get(i).setMutationList(mutationList);
         }
         patientList.remove(0);
+    }
+
+    /**
+     * Méthode qui permet de récuperer la liste de toutes les mutations existantes dans les patients
+     * @param patientList liste des patients
+     * @return liste des mutations
+     */
+    public static ObservableList<String> getMutationsList(List<Patient> patientList) {
+        ObservableList<String> options = FXCollections.observableArrayList();
+        for (Patient patient : patientList){
+            if (!(patient.getMutationList() == null)) {
+                for (Mutation mutationPatient : patient.getMutationList()) {
+                    if (!options.contains(mutationPatient.getMutation_nuc())) {
+                        options.add(mutationPatient.getMutation_nuc());
+                    }
+                }
+            }
+        }
+        return options;
     }
 
 }

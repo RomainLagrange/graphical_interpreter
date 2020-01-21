@@ -2,6 +2,8 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.AnchorPane?>
@@ -43,5 +45,7 @@
         <Button fx:id="exportTotal" layoutX="591.0" layoutY="14.0" mnemonicParsing="false" prefHeight="26.0" prefWidth="137.0" text="Total Export" />
         <Button fx:id="exportPatient" layoutX="592.0" layoutY="43.0" mnemonicParsing="false" text="Per Patient Export" />
         <Button fx:id="exportDixieme" layoutX="592.0" layoutY="75.0" mnemonicParsing="false" prefHeight="26.0" prefWidth="136.0" text="1/10 Export" />
+      <CheckBox fx:id="checkVisible" layoutX="592.0" layoutY="119.0" mnemonicParsing="false" text="Mutation Labels" />
+      <ComboBox fx:id="mutationCombo" layoutX="592.0" layoutY="148.0" prefWidth="150.0" promptText="Mutation to see" />
     </AnchorPane>
 </ScrollPane>

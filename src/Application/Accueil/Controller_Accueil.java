@@ -80,11 +80,6 @@ public class Controller_Accueil {
     private File filtre_file;
 
     /**
-     * Liste qui contient le nom des différentes metadata
-     */
-    private List<String> listMetadataFilter;
-
-    /**
      * HashMap qui associe a chaque champs du metadata le type de donnée associé
      */
     private HashMap<String, String> typeMetadata;
@@ -457,7 +452,7 @@ public class Controller_Accueil {
                                 valuesInteger.put("max",max);
                                 metadataFiltre.put(key,valuesInteger);
                             }
-                            else if (typeMetadata.get(key).equals("word") || typeMetadata.get(key).equals("singleChar")){
+                            else if (typeMetadata.get(key).equals("word")){
                                 String input = ((TextField)lineFilter.lookup("#input")).getText();
                                 metadataFiltre.put(key,input);
                             }
@@ -487,8 +482,10 @@ public class Controller_Accueil {
     private void loadTSV() {
         FileChooser fileChooser = new FileChooser();
         File file = fileChooser.showOpenDialog(this.myStage);
-        this.table_file = file;
-        this.file_path.setText(file.getName());
+        if (!(file ==null)){
+            this.table_file = file;
+            this.file_path.setText(file.getName());
+        }
     }
 
     /**
@@ -498,22 +495,22 @@ public class Controller_Accueil {
     private void loadTSVFiltre() {
         FileChooser fileChooser = new FileChooser();
         File file = fileChooser.showOpenDialog(this.myStage);
-        this.filtre_file = file;
-        this.file_path1.setText(file.getName());
+        if (!(file==null)){
+            this.filtre_file = file;
+            this.file_path1.setText(file.getName());
+        }
     }
 
     /**
      * Methode qui permet de genererer la Vbox qui contiendra les différentes options de filtre par rapport
      * au fichier de metadata
-     *
-     * @return boxMetadata
      */
     private void generateBoxMetadata() {
         boxMetadata = new VBox(15);
         boxMetadata.setPadding(new Insets(10, 10, 10, 10));
         metadata = TableUtils.getTSV(this.filtre_file);
 
-        listMetadataFilter = new ArrayList<>();
+        List<String> listMetadataFilter = new ArrayList<>();
         for (String enTete : metadata.get(0)) {
             if (!enTete.equals("SAMPLEID")) {
                 listMetadataFilter.add(enTete);
@@ -523,21 +520,27 @@ public class Controller_Accueil {
         typeMetadata = createMetadataMap(metadata, listMetadataFilter);
 
         for (String key : typeMetadata.keySet()) {
-            if (typeMetadata.get(key).equals("word")) {
-                HBox lineMetadata = hBoxWord(key);
-                boxMetadata.getChildren().add(lineMetadata);
-            } else if (typeMetadata.get(key).equals("singleChar")) {
-                HBox lineMetadata = hBoxSingleChar(key);
-                boxMetadata.getChildren().add(lineMetadata);
-            } else if (typeMetadata.get(key).equals("integer")) {
-                HBox lineMetadata = hBoxInt(key);
-                boxMetadata.getChildren().add(lineMetadata);
-            } else if (typeMetadata.get(key).equals("double")) {
-                HBox lineMetadata = hBoxDouble(key);
-                boxMetadata.getChildren().add(lineMetadata);
-            } else if (typeMetadata.get(key).equals("date")) {
-                HBox lineMetadata = hBoxDate(key);
-                boxMetadata.getChildren().add(lineMetadata);
+            switch (typeMetadata.get(key)) {
+                case "word": {
+                    HBox lineMetadata = hBoxWord(key);
+                    boxMetadata.getChildren().add(lineMetadata);
+                    break;
+                }
+                case "integer": {
+                    HBox lineMetadata = hBoxInt(key);
+                    boxMetadata.getChildren().add(lineMetadata);
+                    break;
+                }
+                case "double": {
+                    HBox lineMetadata = hBoxDouble(key);
+                    boxMetadata.getChildren().add(lineMetadata);
+                    break;
+                }
+                case "date": {
+                    HBox lineMetadata = hBoxDate(key);
+                    boxMetadata.getChildren().add(lineMetadata);
+                    break;
+                }
             }
         }
     }
@@ -669,39 +672,6 @@ public class Controller_Accueil {
         return lineMetadata;
     }
 
-    private HBox hBoxSingleChar(String key) {
-        HBox lineMetadata = new HBox(10);
-        lineMetadata.setAlignment(Pos.CENTER_LEFT);
-        Label nameMetadata = new Label(key);
-        nameMetadata.setId("nameMetadata");
-
-        CheckBox checkMeta = new CheckBox();
-        checkMeta.setId("checkbox");
-
-        lineMetadata.getChildren().addAll(nameMetadata, checkMeta);
-
-        TextField inputLettre = new TextField();
-        inputLettre.setPrefWidth(40);
-        inputLettre.setTextFormatter(new TextFormatter<String>((TextFormatter.Change change) -> {
-            String newText = change.getControlNewText();
-            if (newText.length() > 1) {
-                return null;
-            } else {
-                return change;
-            }
-        }));
-        inputLettre.setId("input");
-
-        checkMeta.setOnAction(event -> {
-            if (checkMeta.isSelected()) {
-                lineMetadata.getChildren().add(inputLettre);
-            } else {
-                lineMetadata.getChildren().remove(inputLettre);
-            }
-        });
-        return lineMetadata;
-    }
-
     /**
      * Méthode qui permet de remplir la hashmap metadata reférence pour savoir quel est le bon type de donnée
      * pour chaque donnée du fichier metadata
@@ -712,16 +682,13 @@ public class Controller_Accueil {
      */
     private HashMap<String, String> createMetadataMap(ArrayList<List<String>> metadata, List<String> listMetadata) {
         HashMap<String, String> typeMetadata = new HashMap<>();
-        String patternSingleChar = "[a-zA-Z]";
-        String patternWord = "[a-zA-Z]{2,}";
+        String patternWord = "[a-zA-Z]+";
         String patternDouble = "[-+]?[0-9]*\\.[0-9]+([eE][-+]?[0-9]+)?";
         String patternInteger = "\\d+";
         String patternDate = "\\d{6}";
 
         for (int i = 1; i < metadata.get(1).size(); i++) {
-            if (metadata.get(1).get(i).matches(patternSingleChar)) {
-                typeMetadata.put(listMetadata.get(i - 1), "singleChar");
-            } else if (metadata.get(1).get(i).matches(patternDouble)) {
+            if (metadata.get(1).get(i).matches(patternDouble)) {
                 typeMetadata.put(listMetadata.get(i - 1), "double");
             } else if (metadata.get(1).get(i).matches(patternDate)) {
                 typeMetadata.put(listMetadata.get(i - 1), "date");

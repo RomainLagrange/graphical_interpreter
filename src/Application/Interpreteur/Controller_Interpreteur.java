@@ -4,11 +4,15 @@ import Application.Interpreteur.Object.Mutation;
 import Application.Interpreteur.Object.Patient;
 import Application.Utils.TableUtils;
 import javafx.application.Platform;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
+import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
@@ -26,6 +30,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 import static Application.Utils.TableUtils.*;
 import static javafx.embed.swing.SwingFXUtils.fromFXImage;
@@ -95,6 +100,12 @@ public class Controller_Interpreteur {
     @FXML
     private Button exportDixieme;
 
+    @FXML
+    private CheckBox checkVisible;
+
+    @FXML
+    private ComboBox mutationCombo;
+
 
     @FXML
     private void initialize() {
@@ -116,11 +127,56 @@ public class Controller_Interpreteur {
                 listPatients = getListPatientMetadata(this.tsv, this.metadata, this.typeMetadata);
             }
 
+            performMutationVisible();
+
             setMutationsPatients(listPatients, this.tsv);
+
+            mutationCombo.setItems(getMutationsList(listPatients));
+            mutationCombo.valueProperty().addListener((obs, oldItem, newItem) -> {
+                setSpecificMutationVisible(newItem.toString());
+            });
 
             generateAnalysis(listGenes, listPatients);
             generateAnalysisMini(listGenes, listPatients);
         });
+    }
+
+    /**
+     * Méthode qui permet de rendre les labels des mutations visibles ou invisibles quand la checkbox
+     * est cochée ou non
+     */
+    private void performMutationVisible() {
+        checkVisible.setOnAction(event -> {
+            if (checkVisible.isSelected()) {
+                makeLabelsVisible(true);
+            } else {
+                makeLabelsVisible(false);
+            }
+        });
+    }
+
+    private void setSpecificMutationVisible(String mutation){
+        for (Node child : vbox.getChildren()) {
+            if (child instanceof VBox) {
+                for (Node childBoxPatient : ((VBox) child).getChildren()) {
+                    if (childBoxPatient instanceof HBox){
+                        for (Node childHboxGene : ((HBox) childBoxPatient).getChildren()){
+                            if (childHboxGene instanceof AnchorPane){
+                                for (Node groupMutation : ((AnchorPane) childHboxGene).getChildren()){
+                                    if (groupMutation.getId()!=null) {
+                                        if (groupMutation.getId().contains(mutation)) {
+                                            groupMutation.setVisible(true);
+                                        } else {
+                                            groupMutation.setVisible(false);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -286,8 +342,8 @@ public class Controller_Interpreteur {
     /**
      * Méthode qui permet de checker le contenu metadata de patient et celui du filtre pour savoir s'il faut
      * générer ou non l'analyse du patient
-     * @param patient
-     * @return
+     * @param patient patient
+     * @return true ou false selon que le patient doit etre généré ou non
      */
     private boolean checkMetadata(Patient patient){
         for (String metadataPatient: patient.getMetadata().keySet()){
@@ -555,6 +611,18 @@ public class Controller_Interpreteur {
         }
 
         mutationLabel.setMinWidth(30);
+        mutationLabel.setVisible(false);
+        mutationLabel.setId("MutationLabel" + mutationLabel.getText());
+
+        rec.setId(mutationLabel.getText());
+
+        rec.setOnMouseClicked(event -> {
+            if (mutationLabel.isVisible()) {
+                mutationLabel.setVisible(false);
+            } else {
+                mutationLabel.setVisible(true);
+            }
+        });
 
         gene_pane.getChildren().add(rec);
         gene_pane.getChildren().add(mutationLabel);
@@ -565,6 +633,33 @@ public class Controller_Interpreteur {
         AnchorPane.setTopAnchor(rec, 41.0);
         AnchorPane.setLeftAnchor(rec, Double.valueOf(mutation.getPosition_nuc()));
 
+    }
+
+    /**
+     * Méthode qui parcourt tous les gènes présents dans la VBox et qui setVisible les labels des mutations
+     * a true ou false
+     * @param visible true or false
+     */
+    private void makeLabelsVisible(boolean visible) {
+        for (Node child : vbox.getChildren()) {
+            if (child instanceof VBox) {
+                for (Node childBoxPatient : ((VBox) child).getChildren()) {
+                    if (childBoxPatient instanceof HBox){
+                        for (Node childHboxGene : ((HBox) childBoxPatient).getChildren()){
+                            if (childHboxGene instanceof AnchorPane){
+                                for (Node groupMutation : ((AnchorPane) childHboxGene).getChildren()){
+                                    if (groupMutation.getId()!=null) {
+                                        if (groupMutation.getId().contains("MutationLabel")) {
+                                            groupMutation.setVisible(visible);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /**
