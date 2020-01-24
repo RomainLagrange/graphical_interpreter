@@ -17,9 +17,9 @@
             <Label fx:id="label_couleur" prefHeight="60.0" prefWidth="300.0" text="Label" />
             <Label fx:id="label_filtre" prefHeight="60.0" prefWidth="200.0" text="Label" />
         </HBox>
-        <VBox layoutX="36.0" layoutY="184.0" spacing="50">
+        <VBox layoutX="36.0" layoutY="207.0" prefHeight="273.0" prefWidth="647.0" spacing="50">
             <children>
-                <VBox fx:id="vbox" prefHeight="199.0" prefWidth="647.0" spacing="30" />
+                <VBox fx:id="vbox" prefHeight="168.0" prefWidth="647.0" spacing="30" />
                 <VBox fx:id="vboxMini" prefHeight="78.0" prefWidth="647.0" spacing="10" />
             </children>
         </VBox>
@@ -45,7 +45,8 @@
         <Button fx:id="exportTotal" layoutX="591.0" layoutY="14.0" mnemonicParsing="false" prefHeight="26.0" prefWidth="137.0" text="Total Export" />
         <Button fx:id="exportPatient" layoutX="592.0" layoutY="43.0" mnemonicParsing="false" text="Per Patient Export" />
         <Button fx:id="exportDixieme" layoutX="592.0" layoutY="75.0" mnemonicParsing="false" prefHeight="26.0" prefWidth="136.0" text="1/10 Export" />
-      <CheckBox fx:id="checkVisible" layoutX="592.0" layoutY="119.0" mnemonicParsing="false" text="Mutation Labels" />
-      <ComboBox fx:id="mutationCombo" layoutX="592.0" layoutY="148.0" prefWidth="150.0" promptText="Mutation to see" />
+      <CheckBox fx:id="checkVisible" layoutX="591.0" layoutY="176.0" mnemonicParsing="false" text="Mutation Labels" />
+      <ComboBox fx:id="mutationCombo" layoutX="668.0" layoutY="148.0" prefWidth="150.0" promptText="Mutation to see" />
+      <Label layoutX="592.0" layoutY="153.0" text="Mutation :" />
     </AnchorPane>
 </ScrollPane>

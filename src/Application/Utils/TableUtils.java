@@ -179,6 +179,7 @@ public class TableUtils {
      */
     public static ObservableList<String> getMutationsList(List<Patient> patientList) {
         ObservableList<String> options = FXCollections.observableArrayList();
+        options.add("All mutations");
         for (Patient patient : patientList){
             if (!(patient.getMutationList() == null)) {
                 for (Mutation mutationPatient : patient.getMutationList()) {

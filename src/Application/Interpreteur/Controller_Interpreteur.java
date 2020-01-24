@@ -4,10 +4,8 @@ import Application.Interpreteur.Object.Mutation;
 import Application.Interpreteur.Object.Patient;
 import Application.Utils.TableUtils;
 import javafx.application.Platform;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
-import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.control.Button;
@@ -30,7 +28,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 
 import static Application.Utils.TableUtils.*;
 import static javafx.embed.swing.SwingFXUtils.fromFXImage;
@@ -116,8 +113,6 @@ public class Controller_Interpreteur {
             exportPatient.setOnAction(e -> saveImagePatient());
             exportDixieme.setOnAction(e -> saveImageMini());
 
-            System.out.println(filtre);
-
             List<String> listGenes = getListGenes(this.tsv);
             List<Patient> listPatients;
             if (((HashMap<String,Object>)filtre.get("metadata")).isEmpty()){
@@ -135,6 +130,9 @@ public class Controller_Interpreteur {
             mutationCombo.valueProperty().addListener((obs, oldItem, newItem) -> {
                 setSpecificMutationVisible(newItem.toString());
             });
+            mutationCombo.getSelectionModel().select(0);
+
+            checkVisible.setSelected(false);
 
             generateAnalysis(listGenes, listPatients);
             generateAnalysisMini(listGenes, listPatients);
@@ -155,15 +153,26 @@ public class Controller_Interpreteur {
         });
     }
 
+    /**
+     * Méthode qui permet de rendre invisible toutes les mutations qui ne correspondent pas a la mutation
+     * selectionnée dans la combobox
+     * @param mutation
+     */
     private void setSpecificMutationVisible(String mutation){
         for (Node child : vbox.getChildren()) {
-            if (child instanceof VBox) {
-                for (Node childBoxPatient : ((VBox) child).getChildren()) {
+            childInstanceVBox(mutation, child);
+        }
+        for (Node child : vboxMini.getChildren()) {
+            if (child instanceof HBox) {
+                for (Node childBoxPatient : ((HBox) child).getChildren()) {
                     if (childBoxPatient instanceof HBox){
                         for (Node childHboxGene : ((HBox) childBoxPatient).getChildren()){
                             if (childHboxGene instanceof AnchorPane){
                                 for (Node groupMutation : ((AnchorPane) childHboxGene).getChildren()){
-                                    if (groupMutation.getId()!=null) {
+                                    if (mutation.equals("All mutations")){
+                                        groupMutation.setVisible(true);
+                                    }
+                                    else if (groupMutation.getId()!=null) {
                                         if (groupMutation.getId().contains(mutation)) {
                                             groupMutation.setVisible(true);
                                         } else {
@@ -176,8 +185,36 @@ public class Controller_Interpreteur {
                     }
                 }
             }
+            childInstanceVBox(mutation, child);
+        }
+        checkVisible.setSelected(true);
+    }
+
+    private void childInstanceVBox(String mutation, Node child) {
+        if (child instanceof VBox) {
+            for (Node childBoxPatient : ((VBox) child).getChildren()) {
+                if (childBoxPatient instanceof HBox){
+                    for (Node childHboxGene : ((HBox) childBoxPatient).getChildren()){
+                        if (childHboxGene instanceof AnchorPane){
+                            for (Node groupMutation : ((AnchorPane) childHboxGene).getChildren()){
+                                if (mutation.equals("All mutations")){
+                                    groupMutation.setVisible(true);
+                                }
+                                else if (groupMutation.getId()!=null) {
+                                    if (groupMutation.getId().contains(mutation)) {
+                                        groupMutation.setVisible(true);
+                                    } else {
+                                        groupMutation.setVisible(false);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
+
 
     /**
      * Méthode qui permet d'exporter le contenu de l'anchorpane en fichier png
@@ -587,11 +624,11 @@ public class Controller_Interpreteur {
     /**
      * Méthode qui permet de génerer un rectangle mutation qui sera placé sur le gène
      * La mutation passé en paramètre permet de déterminer le choix de la couleur du rectangle
-     *
-     * @param gene_pane pane du gène
+     *  @param gene_pane pane du gène
      * @param mutation mutation à ajouter
+     * @return
      */
-    private void createMutationBox(AnchorPane gene_pane, Mutation mutation) {
+    private Label createMutationBox(AnchorPane gene_pane, Mutation mutation) {
 
         Rectangle rec;
 
@@ -603,18 +640,14 @@ public class Controller_Interpreteur {
             rec = rec_rouge(39, 5);
         }
 
-        Label mutationLabel;
-        if (mutation.getMutation_nuc().equals("COMPLEX")) {
-            mutationLabel = getLabelMutation("CX" + "\n" + mutation.getPosition_nuc());
-        } else {
-            mutationLabel = getLabelMutation(mutation.getMutation_nuc() + "\n" + mutation.getPosition_nuc());
-        }
+        Label mutationLabel = getLabelMutation(mutation.getMutation_nuc() + "\n" + mutation.getPosition_nuc());
+
 
         mutationLabel.setMinWidth(30);
         mutationLabel.setVisible(false);
         mutationLabel.setId("MutationLabel" + mutationLabel.getText());
 
-        rec.setId(mutationLabel.getText());
+        rec.setId(mutation.getMutation_nuc());
 
         rec.setOnMouseClicked(event -> {
             if (mutationLabel.isVisible()) {
@@ -633,6 +666,8 @@ public class Controller_Interpreteur {
         AnchorPane.setTopAnchor(rec, 41.0);
         AnchorPane.setLeftAnchor(rec, Double.valueOf(mutation.getPosition_nuc()));
 
+        return mutationLabel;
+
     }
 
     /**
@@ -650,7 +685,9 @@ public class Controller_Interpreteur {
                                 for (Node groupMutation : ((AnchorPane) childHboxGene).getChildren()){
                                     if (groupMutation.getId()!=null) {
                                         if (groupMutation.getId().contains("MutationLabel")) {
-                                            groupMutation.setVisible(visible);
+                                            if (mutationCombo.getValue().equals("All mutations") || groupMutation.getId().contains(mutationCombo.getValue().toString())){
+                                                groupMutation.setVisible(visible);
+                                            }
                                         }
                                     }
                                 }
@@ -681,6 +718,7 @@ public class Controller_Interpreteur {
             rec = rec_rouge(19, 2);
         }
 
+        rec.setId(mutation.getMutation_nuc());
         gene_pane.getChildren().add(rec);
 
 
