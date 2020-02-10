@@ -56,8 +56,14 @@ public class Controller_Interpreteur {
      */
     private List<List<String>> tsv;
 
+    /**
+     * Longueur des différents gènes
+     */
     private HashMap<String, Integer> sizeGene;
 
+    /**
+     * Filtre indiquant le type d'analyse
+     */
     private HashMap<String, Object> filtre;
 
     /**
@@ -69,6 +75,8 @@ public class Controller_Interpreteur {
      * HashMap qui associe a chaque champs du metadata le type de donnée associé
      */
     private HashMap<String, String> typeMetadata;
+
+    private Boolean dnaAnalysis;
 
     @FXML
     private Label label_couleur;
@@ -103,6 +111,11 @@ public class Controller_Interpreteur {
     @FXML
     private ComboBox mutationCombo;
 
+    @FXML
+    private Label labelEchelleGrande;
+
+    @FXML
+    private Label labelEchelleMini;
 
     @FXML
     private void initialize() {
@@ -126,7 +139,15 @@ public class Controller_Interpreteur {
 
             setMutationsPatients(listPatients, this.tsv);
 
-            mutationCombo.setItems(getMutationsList(listPatients));
+            if (this.dnaAnalysis){
+                mutationCombo.setItems(getMutationsListDNA(listPatients));
+            }
+            else {
+                mutationCombo.setItems(getMutationsListProtein(listPatients));
+                labelEchelleGrande.setText("33 aa");
+                labelEchelleMini.setText("33 aa");
+            }
+
             mutationCombo.valueProperty().addListener((obs, oldItem, newItem) -> {
                 setSpecificMutationVisible(newItem.toString());
             });
@@ -511,7 +532,13 @@ public class Controller_Interpreteur {
      * @return Gène construit avec ses mutations
      */
     private HBox newGeneBox(String nom_du_gene, List<Mutation> mutationList) {
-        Rectangle rec = rect(this.sizeGene.get(nom_du_gene), 40);
+        Rectangle rec;
+        if (this.dnaAnalysis){
+            rec = rect(this.sizeGene.get(nom_du_gene), 40);
+        }
+        else {
+            rec = rect(this.sizeGene.get(nom_du_gene), 40);
+        }
 
         HBox hbox = new HBox();
         hbox.setAlignment(Pos.TOP_CENTER);
@@ -640,14 +667,17 @@ public class Controller_Interpreteur {
             rec = rec_rouge(39, 5);
         }
 
-        Label mutationLabel = getLabelMutation(mutation.getMutation_nuc() + "\n" + mutation.getPosition_nuc());
-
+        Label mutationLabel;
+        if (this.dnaAnalysis){
+            mutationLabel = getLabelMutation(mutation.getMutation_nuc() + "\n" + mutation.getPosition_nuc());
+        }
+        else {
+            mutationLabel = getLabelMutation(mutation.getMutation_pro() + "\n" + mutation.getPosition_pro());
+        }
 
         mutationLabel.setMinWidth(30);
         mutationLabel.setVisible(false);
         mutationLabel.setId("MutationLabel" + mutationLabel.getText());
-
-        rec.setId(mutation.getMutation_nuc());
 
         rec.setOnMouseClicked(event -> {
             if (mutationLabel.isVisible()) {
@@ -661,10 +691,19 @@ public class Controller_Interpreteur {
         gene_pane.getChildren().add(mutationLabel);
 
         AnchorPane.setTopAnchor(mutationLabel, 0.0);
-        AnchorPane.setLeftAnchor(mutationLabel, Double.valueOf(mutation.getPosition_nuc()) - 10.0);
-
         AnchorPane.setTopAnchor(rec, 41.0);
-        AnchorPane.setLeftAnchor(rec, Double.valueOf(mutation.getPosition_nuc()));
+
+
+        if (this.dnaAnalysis){
+            AnchorPane.setLeftAnchor(mutationLabel, Double.valueOf(mutation.getPosition_nuc()) - 10.0);
+            AnchorPane.setLeftAnchor(rec, Double.valueOf(mutation.getPosition_nuc()));
+            rec.setId(mutation.getMutation_nuc());
+        }
+        else {
+            AnchorPane.setLeftAnchor(mutationLabel, (Double.valueOf(mutation.getPosition_pro())*3.0 - 10.0));
+            AnchorPane.setLeftAnchor(rec, (Double.valueOf(mutation.getPosition_pro()))*3.0);
+            rec.setId(mutation.getMutation_pro());
+        }
 
         return mutationLabel;
 
@@ -718,16 +757,29 @@ public class Controller_Interpreteur {
             rec = rec_rouge(19, 2);
         }
 
-        rec.setId(mutation.getMutation_nuc());
         gene_pane.getChildren().add(rec);
 
-
         AnchorPane.setTopAnchor(rec, 1.0);
+
         if (versionMini){
-            AnchorPane.setLeftAnchor(rec, Double.valueOf(mutation.getPosition_nuc()) / 10);
+            if (this.dnaAnalysis){
+                AnchorPane.setLeftAnchor(rec, Double.valueOf(mutation.getPosition_nuc()) / 10.0);
+                rec.setId(mutation.getMutation_nuc());
+            }
+            else {
+                AnchorPane.setLeftAnchor(rec, Double.valueOf(mutation.getPosition_pro())*3.0/10.0);
+                rec.setId(mutation.getMutation_pro());
+            }
         }
         else {
-            AnchorPane.setLeftAnchor(rec, 150.0 + Double.valueOf(mutation.getPosition_nuc()) / 10);
+            if (this.dnaAnalysis){
+                AnchorPane.setLeftAnchor(rec, 150.0 + Double.valueOf(mutation.getPosition_nuc()) / 10.0);
+                rec.setId(mutation.getMutation_nuc());
+            }
+            else {
+                AnchorPane.setLeftAnchor(rec, 150.0 + Double.valueOf(mutation.getPosition_pro())*3.0/10.0);
+                rec.setId(mutation.getMutation_pro());
+            }
         }
     }
 
@@ -942,5 +994,13 @@ public class Controller_Interpreteur {
 
     public void setTypeMetadata(HashMap<String, String> typeMetadata) {
         this.typeMetadata = typeMetadata;
+    }
+
+    public Boolean getDnaAnalysis() {
+        return dnaAnalysis;
+    }
+
+    public void setDnaAnalysis(Boolean dnaAnalysis) {
+        this.dnaAnalysis = dnaAnalysis;
     }
 }

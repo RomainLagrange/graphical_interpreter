@@ -1,7 +1,9 @@
 package Application.Accueil;
 
 import Application.Interpreteur.Controller_Interpreteur;
+import Application.Interpreteur.Object.Patient;
 import Application.Utils.TableUtils;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
@@ -27,6 +29,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.UnaryOperator;
+
+import static Application.Utils.TableUtils.*;
 
 /**
  * Controleur de la fenetre d'accueil
@@ -128,7 +132,22 @@ public class Controller_Accueil {
     private Label geneSize;
     @FXML
     private ScrollPane scrollGene;
+    @FXML
+    private RadioButton dnaCheck;
+    @FXML
+    private RadioButton proteinCheck;
+    @FXML
+    private Label labelAnalyse;
 
+    @FXML
+    private void initialize() {
+        Platform.runLater(() -> {
+            ToggleGroup group = new ToggleGroup();
+            dnaCheck.setToggleGroup(group);
+            dnaCheck.setSelected(true);
+            proteinCheck.setToggleGroup(group);
+        });
+    }
 
     /**
      * Methode qui permet de formater les textfields de saisie des valeurs de couleurs
@@ -222,6 +241,9 @@ public class Controller_Accueil {
         this.buttonOkMetadata.setVisible(true);
         this.scrollMeta.setVisible(true);
         this.button_valider.setVisible(true);
+        this.labelAnalyse.setVisible(true);
+        this.dnaCheck.setVisible(true);
+        this.proteinCheck.setVisible(true);
     }
 
     /**
@@ -380,6 +402,12 @@ public class Controller_Accueil {
         loader.setControllerFactory((Class<?> controllerType) -> {
             if (controllerType == Controller_Interpreteur.class) {
                 Controller_Interpreteur controller = new Controller_Interpreteur();
+                if (dnaCheck.isSelected()){
+                    controller.setDnaAnalysis(true);
+                }
+                else {
+                    controller.setDnaAnalysis(false);
+                }
                 controller.setMin_vert(Double.valueOf(this.min_vert.getText()));
                 controller.setMax_vert(Double.valueOf(this.max_vert.getText()));
                 controller.setMin_orange(Double.valueOf(this.min_orange.getText()));

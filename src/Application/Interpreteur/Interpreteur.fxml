@@ -31,7 +31,7 @@
                 </padding>
             </Label>
             <Rectangle arcHeight="5.0" arcWidth="5.0" fill="WHITE" height="3.0" stroke="BLACK" strokeType="INSIDE" width="100.0" />
-            <Label alignment="CENTER" contentDisplay="RIGHT" prefHeight="61.0" prefWidth="62.0" text="100pb" />
+            <Label fx:id="labelEchelleGrande" alignment="CENTER" contentDisplay="RIGHT" prefHeight="61.0" prefWidth="62.0" text="100pb" />
         </HBox>
         <HBox alignment="CENTER" layoutX="290.0" layoutY="119.0" prefHeight="57.0" prefWidth="277.0">
             <Label prefHeight="57.0" prefWidth="117.0" text="Mini scale">
@@ -40,7 +40,7 @@
                 </padding>
             </Label>
             <Rectangle arcHeight="5.0" arcWidth="5.0" fill="WHITE" height="3.0" stroke="BLACK" strokeType="INSIDE" width="10.0" />
-            <Label alignment="CENTER" contentDisplay="RIGHT" prefHeight="61.0" prefWidth="62.0" text="100pb" />
+            <Label fx:id="labelEchelleMini" alignment="CENTER" contentDisplay="RIGHT" prefHeight="61.0" prefWidth="62.0" text="100pb" />
         </HBox>
         <Button fx:id="exportTotal" layoutX="591.0" layoutY="14.0" mnemonicParsing="false" prefHeight="26.0" prefWidth="137.0" text="Total Export" />
         <Button fx:id="exportPatient" layoutX="592.0" layoutY="43.0" mnemonicParsing="false" text="Per Patient Export" />

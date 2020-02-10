@@ -173,11 +173,11 @@ public class TableUtils {
     }
 
     /**
-     * Méthode qui permet de récuperer la liste de toutes les mutations existantes dans les patients
+     * Méthode qui permet de récuperer la liste de toutes les mutations ADN existantes pour les patients
      * @param patientList liste des patients
      * @return liste des mutations
      */
-    public static ObservableList<String> getMutationsList(List<Patient> patientList) {
+    public static ObservableList<String> getMutationsListDNA(List<Patient> patientList) {
         ObservableList<String> options = FXCollections.observableArrayList();
         options.add("All mutations");
         for (Patient patient : patientList){
@@ -185,6 +185,26 @@ public class TableUtils {
                 for (Mutation mutationPatient : patient.getMutationList()) {
                     if (!options.contains(mutationPatient.getMutation_nuc())) {
                         options.add(mutationPatient.getMutation_nuc());
+                    }
+                }
+            }
+        }
+        return options;
+    }
+
+    /**
+     * Méthode qui permet de récuperer la liste de toutes les mutations protéines existantes pour les patients
+     * @param patientList liste des patients
+     * @return liste des mutations
+     */
+    public static ObservableList<String> getMutationsListProtein(List<Patient> patientList) {
+        ObservableList<String> options = FXCollections.observableArrayList();
+        options.add("All mutations");
+        for (Patient patient : patientList){
+            if (!(patient.getMutationList() == null)) {
+                for (Mutation mutationPatient : patient.getMutationList()) {
+                    if (!options.contains(mutationPatient.getMutation_pro())) {
+                        options.add(mutationPatient.getMutation_pro());
                     }
                 }
             }
