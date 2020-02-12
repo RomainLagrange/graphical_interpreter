@@ -19,8 +19,7 @@ import javafx.stage.Stage;
 import javafx.util.StringConverter;
 import javafx.util.converter.IntegerStringConverter;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.ParseException;
@@ -235,13 +234,16 @@ public class Controller_Accueil {
      */
     private void makeChildrenVisible() {
         this.geneName.setVisible(true);
+        this.geneName.setStyle("-fx-font-weight: bold;");
         this.geneSize.setVisible(true);
+        this.geneSize.setStyle("-fx-font-weight: bold;");
         this.scrollGene.setVisible(true);
         this.button_file1.setVisible(true);
         this.buttonOkMetadata.setVisible(true);
         this.scrollMeta.setVisible(true);
         this.button_valider.setVisible(true);
         this.labelAnalyse.setVisible(true);
+        this.labelAnalyse.setStyle("-fx-font-weight: bold;");
         this.dnaCheck.setVisible(true);
         this.proteinCheck.setVisible(true);
     }

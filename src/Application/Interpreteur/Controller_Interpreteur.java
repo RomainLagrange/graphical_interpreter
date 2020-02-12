@@ -118,9 +118,16 @@ public class Controller_Interpreteur {
     private Label labelEchelleMini;
 
     @FXML
+    private Label labelEchelleGrandeText;
+
+    @FXML
+    private Label labelEchelleMiniText;
+
+    @FXML
     private void initialize() {
         Platform.runLater(() -> {
             setLabels();
+            setLabelsBold();
 
             exportTotal.setOnAction(e -> saveImageTotal());
             exportPatient.setOnAction(e -> saveImagePatient());
@@ -140,10 +147,10 @@ public class Controller_Interpreteur {
             setMutationsPatients(listPatients, this.tsv);
 
             if (this.dnaAnalysis){
-                mutationCombo.setItems(getMutationsListDNA(listPatients));
+                mutationCombo.setItems(getMutationsListDNA(listPatients, this.filtre));
             }
             else {
-                mutationCombo.setItems(getMutationsListProtein(listPatients));
+                mutationCombo.setItems(getMutationsListProtein(listPatients, this.filtre));
                 labelEchelleGrande.setText("33 aa");
                 labelEchelleMini.setText("33 aa");
             }
@@ -158,6 +165,13 @@ public class Controller_Interpreteur {
             generateAnalysis(listGenes, listPatients);
             generateAnalysisMini(listGenes, listPatients);
         });
+    }
+
+    private void setLabelsBold() {
+        this.labelEchelleGrandeText.setStyle("-fx-font-weight: bold;");
+        this.labelEchelleMiniText.setStyle("-fx-font-weight: bold;");
+        this.label_couleur.setStyle("-fx-font-weight: bold;");
+        this.label_filtre.setStyle("-fx-font-weight: bold;");
     }
 
     /**

@@ -25,7 +25,7 @@
         </VBox>
         <Label fx:id="label_file" layoutX="23.0" layoutY="88.0" prefHeight="20.0" prefWidth="517.0" text="Label" />
         <HBox alignment="CENTER" layoutX="10.0" layoutY="119.0" prefHeight="57.0" prefWidth="331.0">
-            <Label alignment="BASELINE_LEFT" contentDisplay="CENTER" prefHeight="57.0" prefWidth="145.0" text="Normal scale">
+            <Label fx:id="labelEchelleGrandeText" alignment="BASELINE_LEFT" contentDisplay="CENTER" prefHeight="57.0" prefWidth="145.0" text="Normal scale">
                 <padding>
                     <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                 </padding>
@@ -34,7 +34,7 @@
             <Label fx:id="labelEchelleGrande" alignment="CENTER" contentDisplay="RIGHT" prefHeight="61.0" prefWidth="62.0" text="100pb" />
         </HBox>
         <HBox alignment="CENTER" layoutX="290.0" layoutY="119.0" prefHeight="57.0" prefWidth="277.0">
-            <Label prefHeight="57.0" prefWidth="117.0" text="Mini scale">
+            <Label fx:id="labelEchelleMiniText" prefHeight="57.0" prefWidth="117.0" text="Mini scale">
                 <padding>
                     <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                 </padding>
