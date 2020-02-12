@@ -2,7 +2,7 @@ package Application.Interpreteur;
 
 import Application.Interpreteur.Object.Mutation;
 import Application.Interpreteur.Object.Patient;
-import Application.Utils.TableUtils;
+import Application.Utils.TSVUtils;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
@@ -29,27 +29,27 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import static Application.Utils.TableUtils.*;
+import static Application.Utils.TSVUtils.*;
 import static javafx.embed.swing.SwingFXUtils.fromFXImage;
 
 /**
  * Classe qui sert de controller à la fenetre de l'interpreteur
  */
-public class Controller_Interpreteur {
+public class ControllerInterpreteur {
 
-    private Double min_vert;
+    private Double minVert;
 
-    private Double max_vert;
+    private Double maxVert;
 
-    private Double min_orange;
+    private Double minOrange;
 
-    private Double max_orange;
+    private Double maxOrange;
 
-    private Double min_rouge;
+    private Double minRouge;
 
-    private Double max_rouge;
+    private Double maxRouge;
 
-    private File table_file;
+    private File fileTSV;
 
     /**
      * Contenu du fichier TSV
@@ -79,16 +79,16 @@ public class Controller_Interpreteur {
     private Boolean dnaAnalysis;
 
     @FXML
-    private Label label_couleur;
+    private Label labelCouleur;
 
     @FXML
-    private Label label_file;
+    private Label labelFileTSV;
 
     @FXML
-    private Label label_filtre;
+    private Label labelFiltre;
 
     @FXML
-    private AnchorPane pane_interpreteur;
+    private AnchorPane paneInterpreteur;
 
     @FXML
     private VBox vbox;
@@ -170,8 +170,8 @@ public class Controller_Interpreteur {
     private void setLabelsBold() {
         this.labelEchelleGrandeText.setStyle("-fx-font-weight: bold;");
         this.labelEchelleMiniText.setStyle("-fx-font-weight: bold;");
-        this.label_couleur.setStyle("-fx-font-weight: bold;");
-        this.label_filtre.setStyle("-fx-font-weight: bold;");
+        this.labelCouleur.setStyle("-fx-font-weight: bold;");
+        this.labelFiltre.setStyle("-fx-font-weight: bold;");
     }
 
     /**
@@ -293,15 +293,15 @@ public class Controller_Interpreteur {
     private void saveImageTotal() {
         BufferedImage bufferedImage = new BufferedImage(550, 400, BufferedImage.TYPE_INT_ARGB);
 
-        WritableImage snapshot = pane_interpreteur.snapshot(new SnapshotParameters(), null);
-        pane_interpreteur.getChildren().add(new ImageView(snapshot));
+        WritableImage snapshot = paneInterpreteur.snapshot(new SnapshotParameters(), null);
+        paneInterpreteur.getChildren().add(new ImageView(snapshot));
 
         BufferedImage image;
         image = fromFXImage(snapshot, bufferedImage);
 
         try {
             Graphics2D gd = (Graphics2D) image.getGraphics();
-            gd.translate(pane_interpreteur.getWidth(), pane_interpreteur.getHeight());
+            gd.translate(paneInterpreteur.getWidth(), paneInterpreteur.getHeight());
             FileChooser fileChooser = new FileChooser();
             //Set extension filter
             fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("png files (*.png)", "*.png"));
@@ -517,21 +517,21 @@ public class Controller_Interpreteur {
      * de couleurs saisie ainsi que le filtre d'analyse utilisé
      */
     private void setLabels() {
-        this.label_couleur.setText("Green value : " + this.min_vert + " - " + this.max_vert + "\n" +
-                "Orange value : " + this.min_orange + " - " + this.max_orange + "\n" +
-                "Red value : " + this.min_rouge + " - " + this.max_rouge);
-        this.label_file.setText(this.table_file.getPath());
-        this.tsv = TableUtils.getTSV(this.table_file);
+        this.labelCouleur.setText("Green value : " + this.minVert + " - " + this.maxVert + "\n" +
+                "Orange value : " + this.minOrange + " - " + this.maxOrange + "\n" +
+                "Red value : " + this.minRouge + " - " + this.maxRouge);
+        this.labelFileTSV.setText(this.fileTSV.getPath());
+        this.tsv = TSVUtils.getTSV(this.fileTSV);
         if (this.filtre.get("analysis").equals("complet")) {
-            this.label_filtre.setText("Complet analysis running");
+            this.labelFiltre.setText("Complet analysis running");
         } else if (this.filtre.get("analysis").equals("gene")) {
-            this.label_filtre.setText("Gene analysis running \nGene : " + this.filtre.get("gene"));
+            this.labelFiltre.setText("Gene analysis running \nGene : " + this.filtre.get("gene"));
         } else {
             if (this.filtre.containsKey("gene")) {
-                this.label_filtre.setText("Cohort analysis running \nCohort : " + this.filtre.get("cohort") +
+                this.labelFiltre.setText("Cohort analysis running \nCohort : " + this.filtre.get("cohort") +
                         "\nGene : " + this.filtre.get("gene"));
             } else {
-                this.label_filtre.setText("Cohort analysis running \n Cohort : " + this.filtre.get("cohort"));
+                this.labelFiltre.setText("Cohort analysis running \n Cohort : " + this.filtre.get("cohort"));
             }
         }
     }
@@ -571,7 +571,7 @@ public class Controller_Interpreteur {
         AnchorPane.setTopAnchor(rec, 40.0);
 
         for (Mutation mutation : mutationList) {
-            if (mutation.getGene().equals(nom_du_gene) && mutation.getTaux() > this.min_vert) {
+            if (mutation.getGene().equals(nom_du_gene) && mutation.getTaux() > this.minVert) {
                 createMutationBox(gene_pane, mutation);
             }
         }
@@ -609,7 +609,7 @@ public class Controller_Interpreteur {
         }
 
         for (Mutation mutation : mutationList) {
-            if (mutation.getGene().equals(nom_du_gene) && mutation.getTaux() > this.min_vert) {
+            if (mutation.getGene().equals(nom_du_gene) && mutation.getTaux() > this.minVert) {
                 createMutationBoxMini(gene_pane, mutation, versionMini);
             }
         }
@@ -650,7 +650,7 @@ public class Controller_Interpreteur {
         }
 
         for (Mutation mutation : mutationList) {
-            if (mutation.getGene().equals(nom_du_gene) && mutation.getTaux() > this.min_vert) {
+            if (mutation.getGene().equals(nom_du_gene) && mutation.getTaux() > this.minVert) {
                 createMutationBoxMini(gene_pane, mutation, versionMini);
             }
         }
@@ -673,12 +673,12 @@ public class Controller_Interpreteur {
 
         Rectangle rec;
 
-        if (mutation.getTaux() <= this.max_vert && mutation.getTaux() > this.min_vert) {
-            rec = rec_vert(39, 5);
-        } else if (mutation.getTaux() <= this.max_orange && mutation.getTaux() > this.min_orange) {
-            rec = rec_orange(39, 5);
+        if (mutation.getTaux() <= this.maxVert && mutation.getTaux() > this.minVert) {
+            rec = recVert(39, 5);
+        } else if (mutation.getTaux() <= this.maxOrange && mutation.getTaux() > this.minOrange) {
+            rec = recOrange(39, 5);
         } else {
-            rec = rec_rouge(39, 5);
+            rec = recRouge(39, 5);
         }
 
         Label mutationLabel;
@@ -763,12 +763,12 @@ public class Controller_Interpreteur {
 
         Rectangle rec;
 
-        if (mutation.getTaux() <= this.max_vert && mutation.getTaux() > this.min_vert) {
-            rec = rec_vert(19, 2);
-        } else if (mutation.getTaux() <= this.max_orange && mutation.getTaux() > this.min_orange) {
-            rec = rec_orange(19, 2);
+        if (mutation.getTaux() <= this.maxVert && mutation.getTaux() > this.minVert) {
+            rec = recVert(19, 2);
+        } else if (mutation.getTaux() <= this.maxOrange && mutation.getTaux() > this.minOrange) {
+            rec = recOrange(19, 2);
         } else {
-            rec = rec_rouge(19, 2);
+            rec = recRouge(19, 2);
         }
 
         gene_pane.getChildren().add(rec);
@@ -916,7 +916,7 @@ public class Controller_Interpreteur {
      * @param width Largeur
      * @return Rectangle rouge
      */
-    private Rectangle rec_rouge(int height, int width) {
+    private Rectangle recRouge(int height, int width) {
         Rectangle rec_rouge = new Rectangle(width, height);
         rec_rouge.setFill(Color.rgb(255, 0, 0));
         return rec_rouge;
@@ -929,7 +929,7 @@ public class Controller_Interpreteur {
      * @param width Largeur
      * @return Rectangle orange
      */
-    private Rectangle rec_orange(int height, int width) {
+    private Rectangle recOrange(int height, int width) {
         Rectangle rec_rouge = new Rectangle(width, height);
         rec_rouge.setFill(Color.rgb(255, 153, 0));
         return rec_rouge;
@@ -942,7 +942,7 @@ public class Controller_Interpreteur {
      * @param width Largeur
      * @return Rectangle vert
      */
-    private Rectangle rec_vert(int height, int width) {
+    private Rectangle recVert(int height, int width) {
         Rectangle rec_vert = new Rectangle(width, height);
         rec_vert.setFill(Color.GREEN);
         return rec_vert;
@@ -962,32 +962,32 @@ public class Controller_Interpreteur {
         this.sizeGene = sizeGene;
     }
 
-    public void setMin_vert(Double min_vert) {
-        this.min_vert = min_vert;
+    public void setMinVert(Double minVert) {
+        this.minVert = minVert;
     }
 
-    public void setMax_vert(Double max_vert) {
-        this.max_vert = max_vert;
+    public void setMaxVert(Double maxVert) {
+        this.maxVert = maxVert;
     }
 
-    public void setMin_orange(Double min_orange) {
-        this.min_orange = min_orange;
+    public void setMinOrange(Double minOrange) {
+        this.minOrange = minOrange;
     }
 
-    public void setMax_orange(Double max_orange) {
-        this.max_orange = max_orange;
+    public void setMaxOrange(Double maxOrange) {
+        this.maxOrange = maxOrange;
     }
 
-    public void setMin_rouge(Double min_rouge) {
-        this.min_rouge = min_rouge;
+    public void setMinRouge(Double minRouge) {
+        this.minRouge = minRouge;
     }
 
-    public void setMax_rouge(Double max_rouge) {
-        this.max_rouge = max_rouge;
+    public void setMaxRouge(Double maxRouge) {
+        this.maxRouge = maxRouge;
     }
 
-    public void setTable_file(File table_file) {
-        this.table_file = table_file;
+    public void setFileTSV(File fileTSV) {
+        this.fileTSV = fileTSV;
     }
 
     public void setFiltre(HashMap<String, Object> filtre) {

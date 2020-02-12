@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 /**
  * Classe qui contient différentes méthodes utiles pour la gestion des fichiers TSV
  */
-public class TableUtils {
+public class TSVUtils {
 
     /**
      * Méthode qui permet de récupérer le contenu d'un fichier TSV
@@ -115,7 +115,7 @@ public class TableUtils {
     }
     /**
      * Méthode qui permet de récupérer la liste des Patients à partir du fichier TSV ainsi que les
-     * metadata si un fichier a été spécifié
+     * metadata associées à ce patient si un fichier a été spécifié
      * @param tsv File TSV
      * @param metadata File metadata
      * @return La liste des patients
@@ -140,7 +140,7 @@ public class TableUtils {
                                     if (typeMetadata.get(metadata.get(0).get(j)).equals("integer") || typeMetadata.get(metadata.get(0).get(j)).equals("date")){
                                         metadataPatient.put(metadata.get(0).get(j),Integer.valueOf(lineMetadata.get(j)));
                                     }
-                                    else if (typeMetadata.get(metadata.get(0).get(j)).equals("word") || typeMetadata.get(metadata.get(0).get(j)).equals("singleChar")){
+                                    else if (typeMetadata.get(metadata.get(0).get(j)).equals("word")){
                                         metadataPatient.put(metadata.get(0).get(j),String.valueOf(lineMetadata.get(j)));
                                     }
                                 }

@@ -1,8 +1,7 @@
 package Application.Accueil;
 
-import Application.Interpreteur.Controller_Interpreteur;
-import Application.Interpreteur.Object.Patient;
-import Application.Utils.TableUtils;
+import Application.Interpreteur.ControllerInterpreteur;
+import Application.Utils.TSVUtils;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -19,7 +18,8 @@ import javafx.stage.Stage;
 import javafx.util.StringConverter;
 import javafx.util.converter.IntegerStringConverter;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.ParseException;
@@ -29,12 +29,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.UnaryOperator;
 
-import static Application.Utils.TableUtils.*;
-
 /**
  * Controleur de la fenetre d'accueil
  */
-public class Controller_Accueil {
+public class ControllerAccueil {
 
     /**
      * Fenetre d'accueil
@@ -44,7 +42,7 @@ public class Controller_Accueil {
     /**
      * ComboBox contenant la liste des différentes analyses possibles
      */
-    private ComboBox<String> comboBox;
+    private ComboBox<String> comboBoxAnalyse;
 
     /**
      * TextField pour saisir le pattern pour l'analyse de cohorte
@@ -64,7 +62,7 @@ public class Controller_Accueil {
     /**
      * File du TSV utilisé pour l'analyse
      */
-    private File table_file;
+    private File fileTSV;
 
     /**
      * HashMap qui associe à chaque gène sa longueur et qui sera transmis au controller interpreteur
@@ -80,7 +78,7 @@ public class Controller_Accueil {
     /**
      * File qui correspond aux données metadata qui permettent de filtrer les patients
      */
-    private File filtre_file;
+    private File fileMetadata;
 
     /**
      * HashMap qui associe a chaque champs du metadata le type de donnée associé
@@ -96,27 +94,27 @@ public class Controller_Accueil {
 
 
     @FXML
-    private TextField min_vert;
+    private TextField minVert;
     @FXML
-    private TextField max_vert;
+    private TextField maxVert;
     @FXML
-    private TextField min_orange;
+    private TextField minOrange;
     @FXML
-    private TextField max_orange;
+    private TextField maxOrange;
     @FXML
-    private TextField min_rouge;
+    private TextField minRouge;
     @FXML
-    private TextField max_rouge;
+    private TextField maxRouge;
     @FXML
-    private Button button_valider;
+    private Button buttonValider;
     @FXML
-    private Button button_file;
+    private Button buttonFileTSV;
     @FXML
-    private Button button_file1;
+    private Button buttonFileMetadata;
     @FXML
-    private Label file_path;
+    private Label filePathTSV;
     @FXML
-    private Label file_path1;
+    private Label filePathMetadata;
     @FXML
     private Button buttonOkMetadata;
     @FXML
@@ -153,13 +151,13 @@ public class Controller_Accueil {
      * pour n'accepter que des décimaux. Génère aussi les valeurs par défaut
      */
     public void setFieldFomat() {
-        this.min_vert.setTextFormatter(getDoubleTextFormatter(0.5));
-        this.min_orange.setTextFormatter(getDoubleTextFormatter(2.0));
-        this.min_rouge.setTextFormatter(getDoubleTextFormatter(20.0));
-        this.max_vert.setTextFormatter(getDoubleTextFormatter(2.0));
-        this.max_orange.setTextFormatter(getDoubleTextFormatter(20.0));
-        this.max_rouge.setTextFormatter(getDoubleTextFormatter(100.0));
-        this.button_valider.setStyle("-fx-border-color: black; -fx-text-fill: mediumblue");
+        this.minVert.setTextFormatter(getDoubleTextFormatter(0.5));
+        this.minOrange.setTextFormatter(getDoubleTextFormatter(2.0));
+        this.minRouge.setTextFormatter(getDoubleTextFormatter(20.0));
+        this.maxVert.setTextFormatter(getDoubleTextFormatter(2.0));
+        this.maxOrange.setTextFormatter(getDoubleTextFormatter(20.0));
+        this.maxRouge.setTextFormatter(getDoubleTextFormatter(100.0));
+        this.buttonValider.setStyle("-fx-border-color: black; -fx-text-fill: mediumblue");
     }
 
     /**
@@ -215,8 +213,8 @@ public class Controller_Accueil {
      */
     @FXML
     private void acceptTable() {
-        this.button_file.setOnMouseClicked((event -> {
-            List<String> list_gene = TableUtils.getListGenes(TableUtils.getTSV(this.table_file));
+        this.buttonFileTSV.setOnMouseClicked((event -> {
+            List<String> list_gene = TSVUtils.getListGenes(TSVUtils.getTSV(this.fileTSV));
             this.gridGene.setPadding(new Insets(10, 10, 10, 10));
             this.sizeGene = new HashMap<>();
             for (String gene : list_gene) {
@@ -238,10 +236,10 @@ public class Controller_Accueil {
         this.geneSize.setVisible(true);
         this.geneSize.setStyle("-fx-font-weight: bold;");
         this.scrollGene.setVisible(true);
-        this.button_file1.setVisible(true);
+        this.buttonFileMetadata.setVisible(true);
         this.buttonOkMetadata.setVisible(true);
         this.scrollMeta.setVisible(true);
-        this.button_valider.setVisible(true);
+        this.buttonValider.setVisible(true);
         this.labelAnalyse.setVisible(true);
         this.labelAnalyse.setStyle("-fx-font-weight: bold;");
         this.dnaCheck.setVisible(true);
@@ -256,16 +254,16 @@ public class Controller_Accueil {
         Label annonceFiltre = new Label("Type of research");
         annonceFiltre.setStyle("-fx-font-weight: bold;");
         annonceFiltre.setPadding(new Insets(10, 10, 10, 10));
-        comboBox = new ComboBox<>();
-        comboBox.getItems().setAll("Complet Analysis", "Cohort Analysis", "Gene Analysis");
-        comboBox.getSelectionModel().select(0);
+        comboBoxAnalyse = new ComboBox<>();
+        comboBoxAnalyse.getItems().setAll("Complet Analysis", "Cohort Analysis", "Gene Analysis");
+        comboBoxAnalyse.getSelectionModel().select(0);
 
         VBox vBoxChoix = new VBox(5);
         vBoxChoix.setPadding(new Insets(10, 10, 10, 10));
         vBoxChoix.setStyle("-fx-border-color: black");
         filtre = new HashMap<>();
 
-        comboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
+        comboBoxAnalyse.valueProperty().addListener((observable, oldValue, newValue) -> {
             switch (newValue) {
                 case "Cohort Analysis":
                     vBoxChoix.getChildren().clear();
@@ -281,7 +279,7 @@ public class Controller_Accueil {
             }
         });
 
-        filtreVBox.getChildren().addAll(annonceFiltre, comboBox, vBoxChoix);
+        filtreVBox.getChildren().addAll(annonceFiltre, comboBoxAnalyse, vBoxChoix);
     }
 
     /**
@@ -402,24 +400,24 @@ public class Controller_Accueil {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/Application/Interpreteur/Interpreteur.fxml"));
         setGeneSize();
         loader.setControllerFactory((Class<?> controllerType) -> {
-            if (controllerType == Controller_Interpreteur.class) {
-                Controller_Interpreteur controller = new Controller_Interpreteur();
+            if (controllerType == ControllerInterpreteur.class) {
+                ControllerInterpreteur controller = new ControllerInterpreteur();
                 if (dnaCheck.isSelected()){
                     controller.setDnaAnalysis(true);
                 }
                 else {
                     controller.setDnaAnalysis(false);
                 }
-                controller.setMin_vert(Double.valueOf(this.min_vert.getText()));
-                controller.setMax_vert(Double.valueOf(this.max_vert.getText()));
-                controller.setMin_orange(Double.valueOf(this.min_orange.getText()));
-                controller.setMax_orange(Double.valueOf(this.max_orange.getText()));
-                controller.setMin_rouge(Double.valueOf(this.min_rouge.getText()));
-                controller.setMax_rouge(Double.valueOf(this.max_rouge.getText()));
+                controller.setMinVert(Double.valueOf(this.minVert.getText()));
+                controller.setMaxVert(Double.valueOf(this.maxVert.getText()));
+                controller.setMinOrange(Double.valueOf(this.minOrange.getText()));
+                controller.setMaxOrange(Double.valueOf(this.maxOrange.getText()));
+                controller.setMinRouge(Double.valueOf(this.minRouge.getText()));
+                controller.setMaxRouge(Double.valueOf(this.maxRouge.getText()));
                 controller.setMetadata(this.metadata);
                 controller.setTypeMetadata(this.typeMetadata);
                 controller.setSizeGene(this.sizeGene);
-                controller.setTable_file(this.table_file);
+                controller.setFileTSV(this.fileTSV);
                 controller.setFiltre(this.filtre);
                 return controller;
             } else {
@@ -447,10 +445,10 @@ public class Controller_Accueil {
      */
     private void generateFiltreMap() {
         filtre = new HashMap<>();
-        if (comboBox.getSelectionModel().getSelectedItem().equals("Gene Analysis")) {
+        if (comboBoxAnalyse.getSelectionModel().getSelectedItem().equals("Gene Analysis")) {
             filtre.put("analysis", "gene");
             filtre.put("gene", comboGene.getValue());
-        } else if (comboBox.getSelectionModel().getSelectedItem().equals("Cohort Analysis")) {
+        } else if (comboBoxAnalyse.getSelectionModel().getSelectedItem().equals("Cohort Analysis")) {
             filtre.put("analysis", "cohort");
             filtre.put("cohort", textFieldCohort.getText());
             if (checkBoxGeneFilter.isSelected()) {
@@ -460,7 +458,7 @@ public class Controller_Accueil {
             filtre.put("analysis", "complet");
         }
         HashMap<String,Object> metadataFiltre = new HashMap<>();
-        if (!file_path1.getText().isEmpty()){
+        if (!filePathMetadata.getText().isEmpty()){
             for (Node lineFilter : boxMetadata.getChildren()){
                 if (((CheckBox)lineFilter.lookup("#checkbox")).isSelected()){
                     String key = ((Label)lineFilter.lookup("#nameMetadata")).getText();
@@ -513,8 +511,8 @@ public class Controller_Accueil {
         FileChooser fileChooser = new FileChooser();
         File file = fileChooser.showOpenDialog(this.myStage);
         if (!(file ==null)){
-            this.table_file = file;
-            this.file_path.setText(file.getName());
+            this.fileTSV = file;
+            this.filePathTSV.setText(file.getName());
         }
     }
 
@@ -526,8 +524,8 @@ public class Controller_Accueil {
         FileChooser fileChooser = new FileChooser();
         File file = fileChooser.showOpenDialog(this.myStage);
         if (!(file==null)){
-            this.filtre_file = file;
-            this.file_path1.setText(file.getName());
+            this.fileMetadata = file;
+            this.filePathMetadata.setText(file.getName());
         }
     }
 
@@ -538,7 +536,7 @@ public class Controller_Accueil {
     private void generateBoxMetadata() {
         boxMetadata = new VBox(15);
         boxMetadata.setPadding(new Insets(10, 10, 10, 10));
-        metadata = TableUtils.getTSV(this.filtre_file);
+        metadata = TSVUtils.getTSV(this.fileMetadata);
 
         List<String> listMetadataFilter = new ArrayList<>();
         for (String enTete : metadata.get(0)) {
