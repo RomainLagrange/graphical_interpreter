@@ -572,7 +572,12 @@ public class ControllerInterpreteur {
 
         for (Mutation mutation : mutationList) {
             if (mutation.getGene().equals(nom_du_gene) && mutation.getTaux() > this.minVert) {
-                createMutationBox(gene_pane, mutation);
+                if (!dnaAnalysis && !mutation.getMutation_pro().equals("NOT_CODING")){
+                    createMutationBox(gene_pane, mutation);
+                }
+                else if (dnaAnalysis) {
+                    createMutationBox(gene_pane, mutation);
+                }
             }
         }
 
@@ -610,7 +615,12 @@ public class ControllerInterpreteur {
 
         for (Mutation mutation : mutationList) {
             if (mutation.getGene().equals(nom_du_gene) && mutation.getTaux() > this.minVert) {
-                createMutationBoxMini(gene_pane, mutation, versionMini);
+                if (!dnaAnalysis && !mutation.getMutation_pro().equals("NOT_CODING")){
+                    createMutationBoxMini(gene_pane, mutation, versionMini);
+                }
+                else if (dnaAnalysis) {
+                    createMutationBoxMini(gene_pane, mutation, versionMini);
+                }
             }
         }
 

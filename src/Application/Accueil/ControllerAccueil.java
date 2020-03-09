@@ -70,10 +70,10 @@ public class ControllerAccueil {
     private HashMap<String, Integer> sizeGene;
 
     /**
-     * HashMap qui contient le type de filtre a utilisé et les valeurs de celui-ci
-     * Ce filtre est transmis au controller interpreteur pour traitement
+     * HashMap qui contient les informations de la page d'accueil
+     * Cette HashMap est transmise au controller interpreteur pour traitement
      */
-    private HashMap<String, Object> filtre;
+    private HashMap<String, Object> infosAccueil;
 
     /**
      * File qui correspond aux données metadata qui permettent de filtrer les patients
@@ -261,7 +261,7 @@ public class ControllerAccueil {
         VBox vBoxChoix = new VBox(5);
         vBoxChoix.setPadding(new Insets(10, 10, 10, 10));
         vBoxChoix.setStyle("-fx-border-color: black");
-        filtre = new HashMap<>();
+        infosAccueil = new HashMap<>();
 
         comboBoxAnalyse.valueProperty().addListener((observable, oldValue, newValue) -> {
             switch (newValue) {
@@ -331,6 +331,7 @@ public class ControllerAccueil {
         ligne2.getChildren().addAll(label2, checkBoxGeneFilter);
 
         vBoxChoix.getChildren().addAll(ligne1, ligne2);
+
         HBox ligne3 = new HBox(5);
         ligne3.setAlignment(Pos.CENTER);
         Label label3 = new Label("Gene name");
@@ -397,8 +398,10 @@ public class ControllerAccueil {
     @FXML
     private void nextWindow() {
         generateFiltreMap();
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/Application/Interpreteur/Interpreteur.fxml"));
+
         setGeneSize();
+
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/Application/Interpreteur/Interpreteur.fxml"));
         loader.setControllerFactory((Class<?> controllerType) -> {
             if (controllerType == ControllerInterpreteur.class) {
                 ControllerInterpreteur controller = new ControllerInterpreteur();
@@ -418,7 +421,7 @@ public class ControllerAccueil {
                 controller.setTypeMetadata(this.typeMetadata);
                 controller.setSizeGene(this.sizeGene);
                 controller.setFileTSV(this.fileTSV);
-                controller.setFiltre(this.filtre);
+                controller.setFiltre(this.infosAccueil);
                 return controller;
             } else {
                 try {
@@ -444,18 +447,18 @@ public class ControllerAccueil {
      * Méthode qui génère la hashmap filtre a envoyer au second controleur
      */
     private void generateFiltreMap() {
-        filtre = new HashMap<>();
+        infosAccueil = new HashMap<>();
         if (comboBoxAnalyse.getSelectionModel().getSelectedItem().equals("Gene Analysis")) {
-            filtre.put("analysis", "gene");
-            filtre.put("gene", comboGene.getValue());
+            infosAccueil.put("analysis", "gene");
+            infosAccueil.put("gene", comboGene.getValue());
         } else if (comboBoxAnalyse.getSelectionModel().getSelectedItem().equals("Cohort Analysis")) {
-            filtre.put("analysis", "cohort");
-            filtre.put("cohort", textFieldCohort.getText());
+            infosAccueil.put("analysis", "cohort");
+            infosAccueil.put("cohort", textFieldCohort.getText());
             if (checkBoxGeneFilter.isSelected()) {
-                filtre.put("gene", comboGene.getValue());
+                infosAccueil.put("gene", comboGene.getValue());
             }
         } else {
-            filtre.put("analysis", "complet");
+            infosAccueil.put("analysis", "complet");
         }
         HashMap<String,Object> metadataFiltre = new HashMap<>();
         if (!filePathMetadata.getText().isEmpty()){
@@ -489,11 +492,11 @@ public class ControllerAccueil {
                 }
             }
         }
-        filtre.put("metadata", metadataFiltre);
+        infosAccueil.put("metadata", metadataFiltre);
     }
 
     /**
-     * Permet de générer les noms des gènes dans la hashmap qui va accueillir nom - taille
+     * Permet de générer remplir la HashMap Gène - Taille avec la valeur saisie
      */
     private void setGeneSize() {
         int i = 0;

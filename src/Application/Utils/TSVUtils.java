@@ -63,7 +63,7 @@ public class TSVUtils {
                 mutation_pro = strings[6];
                 position_pro = Integer.parseInt(strings[5]);
             } else {
-                mutation_pro = "";
+                mutation_pro = "NOT_CODING";
                 position_pro = 0;
             }
             position_nuc = Integer.parseInt(strings[3]);
@@ -214,12 +214,12 @@ public class TSVUtils {
             if (!(patient.getMutationList() == null)) {
                 for (Mutation mutationPatient : patient.getMutationList()) {
                     if (filtre.get("analysis").equals("gene")) {
-                        if (!options.contains(mutationPatient.getMutation_pro()) && mutationPatient.getGene().equals(filtre.get("gene"))) {
+                        if (!options.contains(mutationPatient.getMutation_pro()) && !mutationPatient.getMutation_pro().equals("NOT_CODING") && mutationPatient.getGene().equals(filtre.get("gene"))) {
                             options.add(mutationPatient.getMutation_pro());
                         }
                     }
                     else{
-                        if (!options.contains(mutationPatient.getMutation_pro())) {
+                        if (!options.contains(mutationPatient.getMutation_pro()) && !mutationPatient.getMutation_pro().equals("NOT_CODING")) {
                             options.add(mutationPatient.getMutation_pro());
                         }
                     }
