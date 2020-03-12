@@ -212,7 +212,7 @@ public class ControllerAccueil {
      * Elle permet de générer la liste des gènes puis créer le label qui va demander de saisir la taille des gènes
      */
     @FXML
-    private void acceptTable() {
+    private void acceptTable() throws IOException, InterruptedException {
         this.buttonFileTSV.setOnMouseClicked((event -> {
             List<String> list_gene = TSVUtils.getListGenes(TSVUtils.getTSV(this.fileTSV));
             this.gridGene.setPadding(new Insets(10, 10, 10, 10));
@@ -405,10 +405,9 @@ public class ControllerAccueil {
         loader.setControllerFactory((Class<?> controllerType) -> {
             if (controllerType == ControllerInterpreteur.class) {
                 ControllerInterpreteur controller = new ControllerInterpreteur();
-                if (dnaCheck.isSelected()){
+                if (dnaCheck.isSelected()) {
                     controller.setDnaAnalysis(true);
-                }
-                else {
+                } else {
                     controller.setDnaAnalysis(false);
                 }
                 controller.setMinVert(Double.valueOf(this.minVert.getText()));
@@ -421,7 +420,7 @@ public class ControllerAccueil {
                 controller.setTypeMetadata(this.typeMetadata);
                 controller.setSizeGene(this.sizeGene);
                 controller.setFileTSV(this.fileTSV);
-                controller.setFiltre(this.infosAccueil);
+                controller.setInfosAccueil(this.infosAccueil);
                 return controller;
             } else {
                 try {
@@ -460,32 +459,31 @@ public class ControllerAccueil {
         } else {
             infosAccueil.put("analysis", "complet");
         }
-        HashMap<String,Object> metadataFiltre = new HashMap<>();
-        if (!filePathMetadata.getText().isEmpty()){
-            for (Node lineFilter : boxMetadata.getChildren()){
-                if (((CheckBox)lineFilter.lookup("#checkbox")).isSelected()){
-                    String key = ((Label)lineFilter.lookup("#nameMetadata")).getText();
-                    for (String nameMeta : typeMetadata.keySet()){
-                        if (key.equals(nameMeta)){
-                            if (typeMetadata.get(key).equals("double")){
+        HashMap<String, Object> metadataFiltre = new HashMap<>();
+        if (!filePathMetadata.getText().isEmpty()) {
+            for (Node lineFilter : boxMetadata.getChildren()) {
+                if (((CheckBox) lineFilter.lookup("#checkbox")).isSelected()) {
+                    String key = ((Label) lineFilter.lookup("#nameMetadata")).getText();
+                    for (String nameMeta : typeMetadata.keySet()) {
+                        if (key.equals(nameMeta)) {
+                            if (typeMetadata.get(key).equals("double")) {
                                 HashMap<String, Double> valuesDouble = new HashMap<>();
-                                Double min = Double.valueOf(((TextField)lineFilter.lookup("#"+key+"min")).getText());
-                                Double max = Double.valueOf(((TextField)lineFilter.lookup("#"+key+"max")).getText());
-                                valuesDouble.put("min",min);
-                                valuesDouble.put("max",max);
-                                metadataFiltre.put(key,valuesDouble);
+                                Double min = Double.valueOf(((TextField) lineFilter.lookup("#" + key + "min")).getText());
+                                Double max = Double.valueOf(((TextField) lineFilter.lookup("#" + key + "max")).getText());
+                                valuesDouble.put("min", min);
+                                valuesDouble.put("max", max);
+                                metadataFiltre.put(key, valuesDouble);
                             }
-                            if (typeMetadata.get(key).equals("integer") || typeMetadata.get(key).equals("date")){
+                            if (typeMetadata.get(key).equals("integer") || typeMetadata.get(key).equals("date")) {
                                 HashMap<String, Integer> valuesInteger = new HashMap<>();
-                                Integer min = Integer.valueOf(((TextField)lineFilter.lookup("#"+key+"min")).getText());
-                                Integer max = Integer.valueOf(((TextField)lineFilter.lookup("#"+key+"max")).getText());
-                                valuesInteger.put("min",min);
-                                valuesInteger.put("max",max);
-                                metadataFiltre.put(key,valuesInteger);
-                            }
-                            else if (typeMetadata.get(key).equals("word")){
-                                String input = ((TextField)lineFilter.lookup("#input")).getText();
-                                metadataFiltre.put(key,input);
+                                Integer min = Integer.valueOf(((TextField) lineFilter.lookup("#" + key + "min")).getText());
+                                Integer max = Integer.valueOf(((TextField) lineFilter.lookup("#" + key + "max")).getText());
+                                valuesInteger.put("min", min);
+                                valuesInteger.put("max", max);
+                                metadataFiltre.put(key, valuesInteger);
+                            } else if (typeMetadata.get(key).equals("word")) {
+                                String input = ((TextField) lineFilter.lookup("#input")).getText();
+                                metadataFiltre.put(key, input);
                             }
                         }
                     }
@@ -513,7 +511,7 @@ public class ControllerAccueil {
     private void loadTSV() {
         FileChooser fileChooser = new FileChooser();
         File file = fileChooser.showOpenDialog(this.myStage);
-        if (!(file ==null)){
+        if (!(file == null)) {
             this.fileTSV = file;
             this.filePathTSV.setText(file.getName());
         }
@@ -526,7 +524,7 @@ public class ControllerAccueil {
     private void loadTSVFiltre() {
         FileChooser fileChooser = new FileChooser();
         File file = fileChooser.showOpenDialog(this.myStage);
-        if (!(file==null)){
+        if (!(file == null)) {
             this.fileMetadata = file;
             this.filePathMetadata.setText(file.getName());
         }
@@ -614,9 +612,9 @@ public class ControllerAccueil {
         HBox lineMetadataInt = new HBox(5);
 
         TextField inputIntMin = getTextFieldIntFormated();
-        inputIntMin.setId(key+"min");
+        inputIntMin.setId(key + "min");
         TextField inputIntMax = getTextFieldIntFormated();
-        inputIntMax.setId(key+"max");
+        inputIntMax.setId(key + "max");
         Label separator = new Label("< Value <");
 
         lineMetadataInt.getChildren().addAll(inputIntMin, separator, inputIntMax);
@@ -647,10 +645,10 @@ public class ControllerAccueil {
 
         TextField inputIntMin = getTextFieldIntFormated();
         inputIntMin.setPrefWidth(80);
-        inputIntMin.setId(key+"min");
+        inputIntMin.setId(key + "min");
         TextField inputIntMax = getTextFieldIntFormated();
         inputIntMax.setPrefWidth(80);
-        inputIntMax.setId(key+"max");
+        inputIntMax.setId(key + "max");
         Label from = new Label("From");
         Label to = new Label("To");
 
@@ -683,11 +681,11 @@ public class ControllerAccueil {
         TextField inputDoubleMin = new TextField();
         inputDoubleMin.setTextFormatter(getDoubleTextFormatter(0.0));
         inputDoubleMin.setPrefWidth(80);
-        inputDoubleMin.setId(key+"min");
+        inputDoubleMin.setId(key + "min");
         TextField inputDoubleMax = new TextField();
         inputDoubleMax.setTextFormatter(getDoubleTextFormatter(100.0));
         inputDoubleMax.setPrefWidth(80);
-        inputDoubleMax.setId(key+"max");
+        inputDoubleMax.setId(key + "max");
         Label value = new Label("< Value <");
 
         lineMetadataDouble.getChildren().addAll(inputDoubleMin, value, inputDoubleMax);

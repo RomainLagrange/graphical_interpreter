@@ -1,52 +1,53 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.CheckBox?>
-<?import javafx.scene.control.ComboBox?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ScrollPane?>
-<?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.Rectangle?>
-
-<ScrollPane prefHeight="512.0" prefWidth="719.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Application.Interpreteur.ControllerInterpreteur">
+<ScrollPane prefHeight="512.0" prefWidth="719.0" xmlns="http://javafx.com/javafx/8.0.171"
+            xmlns:fx="http://javafx.com/fxml/1" fx:controller="Application.Interpreteur.ControllerInterpreteur">
     <AnchorPane fx:id="paneInterpreteur" prefHeight="511.0" prefWidth="877.0">
         <HBox layoutX="23.0" layoutY="9.0" prefHeight="60.0" prefWidth="510.0" spacing="20">
-            <Label fx:id="labelCouleur" prefHeight="60.0" prefWidth="300.0" text="Label" />
-            <Label fx:id="labelFiltre" prefHeight="60.0" prefWidth="200.0" text="Label" />
+            <Label fx:id="labelCouleur" prefHeight="60.0" prefWidth="300.0" text="Label"/>
+            <Label fx:id="labelFiltre" prefHeight="60.0" prefWidth="200.0" text="Label"/>
         </HBox>
         <VBox layoutX="36.0" layoutY="207.0" prefHeight="273.0" prefWidth="647.0" spacing="50">
             <children>
-                <VBox fx:id="vbox" prefHeight="168.0" prefWidth="647.0" spacing="30" />
-                <VBox fx:id="vboxMini" prefHeight="78.0" prefWidth="647.0" spacing="10" />
+                <VBox fx:id="vbox" prefHeight="168.0" prefWidth="647.0" spacing="30"/>
+                <VBox fx:id="vboxMini" prefHeight="78.0" prefWidth="647.0" spacing="10"/>
             </children>
         </VBox>
-        <Label fx:id="labelFileTSV" layoutX="23.0" layoutY="88.0" prefHeight="20.0" prefWidth="517.0" text="Label" />
+        <Label fx:id="labelFileTSV" layoutX="23.0" layoutY="88.0" prefHeight="20.0" prefWidth="517.0" text="Label"/>
         <HBox alignment="CENTER" layoutX="10.0" layoutY="119.0" prefHeight="57.0" prefWidth="331.0">
-            <Label fx:id="labelEchelleGrandeText" alignment="BASELINE_LEFT" contentDisplay="CENTER" prefHeight="57.0" prefWidth="145.0" text="Normal scale">
+            <Label fx:id="labelEchelleGrandeText" alignment="BASELINE_LEFT" contentDisplay="CENTER" prefHeight="57.0"
+                   prefWidth="145.0" text="Normal scale">
                 <padding>
-                    <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                    <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
                 </padding>
             </Label>
-            <Rectangle arcHeight="5.0" arcWidth="5.0" fill="WHITE" height="3.0" stroke="BLACK" strokeType="INSIDE" width="100.0" />
-            <Label fx:id="labelEchelleGrande" alignment="CENTER" contentDisplay="RIGHT" prefHeight="61.0" prefWidth="62.0" text="100pb" />
+            <Rectangle arcHeight="5.0" arcWidth="5.0" fill="WHITE" height="3.0" stroke="BLACK" strokeType="INSIDE"
+                       width="100.0"/>
+            <Label fx:id="labelEchelleGrande" alignment="CENTER" contentDisplay="RIGHT" prefHeight="61.0"
+                   prefWidth="62.0" text="100pb"/>
         </HBox>
         <HBox alignment="CENTER" layoutX="290.0" layoutY="119.0" prefHeight="57.0" prefWidth="277.0">
             <Label fx:id="labelEchelleMiniText" prefHeight="57.0" prefWidth="117.0" text="Mini scale">
                 <padding>
-                    <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                    <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
                 </padding>
             </Label>
-            <Rectangle arcHeight="5.0" arcWidth="5.0" fill="WHITE" height="3.0" stroke="BLACK" strokeType="INSIDE" width="10.0" />
-            <Label fx:id="labelEchelleMini" alignment="CENTER" contentDisplay="RIGHT" prefHeight="61.0" prefWidth="62.0" text="100pb" />
+            <Rectangle arcHeight="5.0" arcWidth="5.0" fill="WHITE" height="3.0" stroke="BLACK" strokeType="INSIDE"
+                       width="10.0"/>
+            <Label fx:id="labelEchelleMini" alignment="CENTER" contentDisplay="RIGHT" prefHeight="61.0" prefWidth="62.0"
+                   text="100pb"/>
         </HBox>
-        <Button fx:id="exportTotal" layoutX="591.0" layoutY="14.0" mnemonicParsing="false" prefHeight="26.0" prefWidth="137.0" text="Total Export" />
-        <Button fx:id="exportPatient" layoutX="592.0" layoutY="43.0" mnemonicParsing="false" text="Per Patient Export" />
-        <Button fx:id="exportDixieme" layoutX="592.0" layoutY="75.0" mnemonicParsing="false" prefHeight="26.0" prefWidth="136.0" text="1/10 Export" />
-      <CheckBox fx:id="checkVisible" layoutX="591.0" layoutY="176.0" mnemonicParsing="false" text="Mutation Labels" />
-      <ComboBox fx:id="mutationCombo" layoutX="668.0" layoutY="148.0" prefWidth="150.0" promptText="Mutation to see" />
-      <Label layoutX="592.0" layoutY="153.0" text="Mutation :" />
+        <Button fx:id="exportTotal" layoutX="591.0" layoutY="14.0" mnemonicParsing="false" prefHeight="26.0"
+                prefWidth="137.0" text="Total Export"/>
+        <Button fx:id="exportPatient" layoutX="592.0" layoutY="43.0" mnemonicParsing="false" text="Per Patient Export"/>
+        <Button fx:id="exportDixieme" layoutX="592.0" layoutY="75.0" mnemonicParsing="false" prefHeight="26.0"
+                prefWidth="136.0" text="1/10 Export"/>
+        <CheckBox fx:id="checkVisible" layoutX="591.0" layoutY="176.0" mnemonicParsing="false" text="Mutation Labels"/>
+        <ComboBox fx:id="mutationCombo" layoutX="668.0" layoutY="148.0" prefWidth="150.0" promptText="Mutation to see"/>
+        <Label layoutX="592.0" layoutY="153.0" text="Mutation :"/>
     </AnchorPane>
 </ScrollPane>

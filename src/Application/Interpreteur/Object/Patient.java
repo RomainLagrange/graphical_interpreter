@@ -12,7 +12,7 @@ public class Patient {
 
     private List<Mutation> mutationList;
 
-    private HashMap<String,Object> metadata;
+    private HashMap<String, Object> metadata;
 
     public Patient(String identifiant) {
         this.identifiant = identifiant;

@@ -21,6 +21,7 @@ public class TSVUtils {
 
     /**
      * Méthode qui permet de récupérer le contenu d'un fichier TSV
+     *
      * @param tsv le File tsv
      * @return contenu sous forme List<List<String>>
      */
@@ -42,6 +43,7 @@ public class TSVUtils {
 
     /**
      * Méthode qui permet de récupérer la liste des mutations du fichier TSV
+     *
      * @param tsv File TSV
      * @return List d'objets Mutations
      */
@@ -78,6 +80,7 @@ public class TSVUtils {
 
     /**
      * Méthode qui permet de récupérer la liste des gènes du fichier TSV
+     *
      * @param tsv File TSV
      * @return List des gènes
      */
@@ -100,6 +103,7 @@ public class TSVUtils {
 
     /**
      * Méthode qui permet de récupérer la liste des Patients à partir du fichier TSV
+     *
      * @param tsv File TSV
      * @return La liste des patients
      */
@@ -111,16 +115,19 @@ public class TSVUtils {
         for (String i : listInter) {
             patientList.add(new Patient(i));
         }
+        patientList.remove(0);
         return patientList;
     }
+
     /**
      * Méthode qui permet de récupérer la liste des Patients à partir du fichier TSV ainsi que les
      * metadata associées à ce patient si un fichier a été spécifié
-     * @param tsv File TSV
+     *
+     * @param tsv      File TSV
      * @param metadata File metadata
      * @return La liste des patients
      */
-    public static List<Patient> getListPatientMetadata(List<List<String>> tsv, ArrayList<List<String>> metadata, HashMap<String, String> typeMetadata) {
+    public static List<Patient> getListPatientMetadata(List<List<String>> tsv, ArrayList<List<String>> metadata, HashMap<String, String> typeMetadata, HashMap<String, Object> filtre) {
         List<Patient> patientList = new ArrayList<>();
         List<String> listInter;
 
@@ -129,19 +136,18 @@ public class TSVUtils {
             Patient patient = new Patient(i);
             HashMap<String, Object> metadataPatient = new HashMap<>();
             for (List<String> lineMetadata : metadata) {
-                if (!lineMetadata.get(0).equals("SAMPLEID")){
-                    if (lineMetadata.get(0).equals(patient.getIdentifiant())){
-                        for (int j =1; j<lineMetadata.size(); j++) {
-                            for (String nameMeta : typeMetadata.keySet()){
-                                if (metadata.get(0).get(j).equals(nameMeta)){
-                                    if (typeMetadata.get(metadata.get(0).get(j)).equals("double")){
-                                        metadataPatient.put(metadata.get(0).get(j),Double.valueOf(lineMetadata.get(j)));
+                if (!lineMetadata.get(0).equals("SAMPLEID")) {
+                    if (lineMetadata.get(0).equals(patient.getIdentifiant())) {
+                        for (int j = 1; j < lineMetadata.size(); j++) {
+                            for (String nameMeta : typeMetadata.keySet()) {
+                                if (metadata.get(0).get(j).equals(nameMeta)) {
+                                    if (typeMetadata.get(metadata.get(0).get(j)).equals("double")) {
+                                        metadataPatient.put(metadata.get(0).get(j), Double.valueOf(lineMetadata.get(j)));
                                     }
-                                    if (typeMetadata.get(metadata.get(0).get(j)).equals("integer") || typeMetadata.get(metadata.get(0).get(j)).equals("date")){
-                                        metadataPatient.put(metadata.get(0).get(j),Integer.valueOf(lineMetadata.get(j)));
-                                    }
-                                    else if (typeMetadata.get(metadata.get(0).get(j)).equals("word")){
-                                        metadataPatient.put(metadata.get(0).get(j),String.valueOf(lineMetadata.get(j)));
+                                    if (typeMetadata.get(metadata.get(0).get(j)).equals("integer") || typeMetadata.get(metadata.get(0).get(j)).equals("date")) {
+                                        metadataPatient.put(metadata.get(0).get(j), Integer.valueOf(lineMetadata.get(j)));
+                                    } else if (typeMetadata.get(metadata.get(0).get(j)).equals("word")) {
+                                        metadataPatient.put(metadata.get(0).get(j), String.valueOf(lineMetadata.get(j)));
                                     }
                                 }
                             }
@@ -150,47 +156,56 @@ public class TSVUtils {
                 }
             }
             patient.setMetadata(metadataPatient);
-            patientList.add(patient);
-
+            if (checkMetadata(patient, filtre)) {
+                patientList.add(patient);
+            }
         }
+        patientList.remove(0);
         return patientList;
     }
 
     /**
      * Méthode qui permet d'attribuer à chaque patient la liste des différentes Mutations
+     *
      * @param patientList Liste des patients
-     * @param tsv File TSV
+     * @param tsv         File TSV
      */
     public static void setMutationsPatients(List<Patient> patientList, List<List<String>> tsv) {
-        for (int i = 1; i < tsv.get(1).size(); i++) {
+        for (Patient patient : patientList) {
+            int indice = 0;
+            for (int i = 1; i < tsv.get(0).size(); i++) {
+                if (tsv.get(0).get(i).equals(patient.getIdentifiant())) {
+                    indice = i;
+                }
+            }
+
             List<Mutation> mutationList = getMutations(tsv);
             for (int j = 1; j < tsv.size(); j++) {
-                mutationList.get(j - 1).setTaux(Double.valueOf(tsv.get(j).get(i)));
+                mutationList.get(j - 1).setTaux(Double.valueOf(tsv.get(j).get(indice)));
             }
-            patientList.get(i).setMutationList(mutationList);
+            patient.setMutationList(mutationList);
         }
-        patientList.remove(0);
     }
 
     /**
      * Méthode qui permet de récuperer la liste de toutes les mutations ADN existantes pour les patients
+     *
      * @param patientList liste des patients
-     * @param filtre filtre de recherche dans le cas d'une analyse sur un gène particulier
+     * @param filtre      filtre de recherche dans le cas d'une analyse sur un gène particulier
      * @return liste des mutations
      */
     public static ObservableList<String> getMutationsListDNA(List<Patient> patientList, HashMap<String, Object> filtre) {
         ObservableList<String> options = FXCollections.observableArrayList();
         options.add("All mutations");
-        for (Patient patient : patientList){
+        for (Patient patient : patientList) {
             if (!(patient.getMutationList() == null)) {
                 for (Mutation mutationPatient : patient.getMutationList()) {
                     if (filtre.get("analysis").equals("gene")) {
-                        if (!options.contains(mutationPatient.getMutation_nuc()) && mutationPatient.getGene().equals(filtre.get("gene"))) {
+                        if (!options.contains(mutationPatient.getMutation_nuc()) && mutationPatient.getGene().equals(filtre.get("gene")) && mutationPatient.getTaux() > 0) {
                             options.add(mutationPatient.getMutation_nuc());
                         }
-                    }
-                    else{
-                        if (!options.contains(mutationPatient.getMutation_nuc())) {
+                    } else {
+                        if (!options.contains(mutationPatient.getMutation_nuc()) && mutationPatient.getTaux() > 0) {
                             options.add(mutationPatient.getMutation_nuc());
                         }
                     }
@@ -203,23 +218,23 @@ public class TSVUtils {
 
     /**
      * Méthode qui permet de récuperer la liste de toutes les mutations protéines existantes pour les patients
+     *
      * @param patientList liste des patients
-     * @param filtre filtre de recherche dans le cas d'une analyse sur un gène particulier
+     * @param filtre      filtre de recherche dans le cas d'une analyse sur un gène particulier
      * @return liste des mutations
      */
     public static ObservableList<String> getMutationsListProtein(List<Patient> patientList, HashMap<String, Object> filtre) {
         ObservableList<String> options = FXCollections.observableArrayList();
         options.add("All mutations");
-        for (Patient patient : patientList){
+        for (Patient patient : patientList) {
             if (!(patient.getMutationList() == null)) {
                 for (Mutation mutationPatient : patient.getMutationList()) {
                     if (filtre.get("analysis").equals("gene")) {
-                        if (!options.contains(mutationPatient.getMutation_pro()) && !mutationPatient.getMutation_pro().equals("NOT_CODING") && mutationPatient.getGene().equals(filtre.get("gene"))) {
+                        if (!options.contains(mutationPatient.getMutation_pro()) && !mutationPatient.getMutation_pro().equals("NOT_CODING") && mutationPatient.getGene().equals(filtre.get("gene")) && mutationPatient.getTaux() > 0) {
                             options.add(mutationPatient.getMutation_pro());
                         }
-                    }
-                    else{
-                        if (!options.contains(mutationPatient.getMutation_pro()) && !mutationPatient.getMutation_pro().equals("NOT_CODING")) {
+                    } else {
+                        if (!options.contains(mutationPatient.getMutation_pro()) && !mutationPatient.getMutation_pro().equals("NOT_CODING") && mutationPatient.getTaux() > 0) {
                             options.add(mutationPatient.getMutation_pro());
                         }
                     }
@@ -227,6 +242,36 @@ public class TSVUtils {
             }
         }
         return options;
+    }
+
+    /**
+     * Méthode qui permet de checker le contenu metadata de patient et celui du filtre pour savoir s'il faut
+     * générer ou non l'analyse du patient et l'ajouter à la liste des patients
+     *
+     * @param patient patient
+     * @return true ou false selon que le patient doit etre généré ou non
+     */
+    public static boolean checkMetadata(Patient patient, HashMap<String, Object> filtre) {
+        for (String metadataPatient : patient.getMetadata().keySet()) {
+            if (((HashMap<String, Object>) filtre.get("metadata")).containsKey(metadataPatient)) {
+                if (patient.getMetadata().get(metadataPatient) instanceof String) {
+                    if (!((HashMap<String, Object>) filtre.get("metadata")).get(metadataPatient).equals(patient.getMetadata().get(metadataPatient))) {
+                        return false;
+                    }
+                } else if (patient.getMetadata().get(metadataPatient) instanceof Double) {
+                    if ((Double) patient.getMetadata().get(metadataPatient) > ((Double) ((HashMap<String, Object>) ((HashMap<String, Object>) filtre.get("metadata")).get(metadataPatient)).get("max")) ||
+                            (Double) patient.getMetadata().get(metadataPatient) < ((Double) ((HashMap<String, Object>) ((HashMap<String, Object>) filtre.get("metadata")).get(metadataPatient)).get("min"))) {
+                        return false;
+                    }
+                } else if (patient.getMetadata().get(metadataPatient) instanceof Integer) {
+                    if ((Integer) patient.getMetadata().get(metadataPatient) > ((Integer) ((HashMap<String, Object>) ((HashMap<String, Object>) filtre.get("metadata")).get(metadataPatient)).get("max")) ||
+                            (Integer) patient.getMetadata().get(metadataPatient) < ((Integer) ((HashMap<String, Object>) ((HashMap<String, Object>) filtre.get("metadata")).get(metadataPatient)).get("min"))) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
     }
 
 }
