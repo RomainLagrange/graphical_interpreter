@@ -123,6 +123,9 @@ public class ControllerInterpreteur {
     @FXML
     private Label labelEchelleMiniText;
 
+    /**
+     * Méthode qui se lance au chargement de la fenêtre
+     */
     @FXML
     private void initialize() {
         Platform.runLater(() -> {
@@ -165,6 +168,40 @@ public class ControllerInterpreteur {
         });
     }
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////                                                                                           /////////
+    ////////                                  Labels                                                   /////////
+    ////////                                                                                           /////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+    /**
+     * Méthode qui permet de compléter les labels en haut de l'analyse, pour rappeler les valeurs
+     * de couleurs saisie ainsi que le filtre d'analyse utilisé
+     */
+    private void setLabels() {
+        this.labelCouleur.setText("Green value : " + this.minVert + " - " + this.maxVert + "\n" +
+                "Orange value : " + this.minOrange + " - " + this.maxOrange + "\n" +
+                "Red value : " + this.minRouge + " - " + this.maxRouge);
+        this.labelFileTSV.setText(this.fileTSV.getPath());
+        this.tsv = TSVUtils.getTSV(this.fileTSV);
+        if (this.infosAccueil.get("analysis").equals("complet")) {
+            this.labelFiltre.setText("Complet analysis running");
+        } else if (this.infosAccueil.get("analysis").equals("gene")) {
+            this.labelFiltre.setText("Gene analysis running \nGene : " + this.infosAccueil.get("gene"));
+        } else {
+            if (this.infosAccueil.containsKey("gene")) {
+                this.labelFiltre.setText("Cohort analysis running \nCohort : " + this.infosAccueil.get("cohort") +
+                        "\nGene : " + this.infosAccueil.get("gene"));
+            } else {
+                this.labelFiltre.setText("Cohort analysis running \n Cohort : " + this.infosAccueil.get("cohort"));
+            }
+        }
+    }
+
+    /**
+     * Méthode qui permet de mettre les labels en gras
+     */
     private void setLabelsBold() {
         this.labelEchelleGrandeText.setStyle("-fx-font-weight: bold;");
         this.labelEchelleMiniText.setStyle("-fx-font-weight: bold;");
@@ -172,81 +209,13 @@ public class ControllerInterpreteur {
         this.labelFiltre.setStyle("-fx-font-weight: bold;");
     }
 
-    /**
-     * Méthode qui permet de rendre les labels des mutations visibles ou invisibles quand la checkbox
-     * est cochée ou non
-     */
-    private void performMutationVisible() {
-        checkVisible.setOnAction(event -> {
-            if (checkVisible.isSelected()) {
-                makeLabelsVisible(true);
-            } else {
-                makeLabelsVisible(false);
-            }
-        });
-    }
 
-    /**
-     * Méthode qui permet de rendre invisible toutes les mutations qui ne correspondent pas a la mutation
-     * selectionnée dans la combobox
-     *
-     * @param mutation
-     */
-    private void setSpecificMutationVisible(String mutation) {
-        for (Node child : vbox.getChildren()) {
-            childInstanceVBox(mutation, child);
-        }
-        for (Node child : vboxMini.getChildren()) {
-            if (child instanceof HBox) {
-                for (Node childBoxPatient : ((HBox) child).getChildren()) {
-                    if (childBoxPatient instanceof HBox) {
-                        for (Node childHboxGene : ((HBox) childBoxPatient).getChildren()) {
-                            if (childHboxGene instanceof AnchorPane) {
-                                for (Node groupMutation : ((AnchorPane) childHboxGene).getChildren()) {
-                                    if (mutation.equals("All mutations")) {
-                                        groupMutation.setVisible(true);
-                                    } else if (groupMutation.getId() != null) {
-                                        if (groupMutation.getId().contains(mutation)) {
-                                            groupMutation.setVisible(true);
-                                        } else {
-                                            groupMutation.setVisible(false);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            childInstanceVBox(mutation, child);
-        }
-        checkVisible.setSelected(true);
-    }
 
-    private void childInstanceVBox(String mutation, Node child) {
-        if (child instanceof VBox) {
-            for (Node childBoxPatient : ((VBox) child).getChildren()) {
-                if (childBoxPatient instanceof HBox) {
-                    for (Node childHboxGene : ((HBox) childBoxPatient).getChildren()) {
-                        if (childHboxGene instanceof AnchorPane) {
-                            for (Node groupMutation : ((AnchorPane) childHboxGene).getChildren()) {
-                                if (mutation.equals("All mutations")) {
-                                    groupMutation.setVisible(true);
-                                } else if (groupMutation.getId() != null) {
-                                    if (groupMutation.getId().contains(mutation)) {
-                                        groupMutation.setVisible(true);
-                                    } else {
-                                        groupMutation.setVisible(false);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////                                                                                           /////////
+    ////////                                  Export                                                   /////////
+    ////////                                                                                           /////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
      * Méthode qui permet d'exporter le contenu de l'anchorpane en fichier png
@@ -337,6 +306,12 @@ public class ControllerInterpreteur {
         }
     }
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////                                                                                           /////////
+    ////////                                  Analyse Complète                                         /////////
+    ////////                                                                                           /////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     /**
      * Méthode qui va générer tous les gènes avec leurs mutations pour chaque cas d'analyse différents
      *
@@ -371,6 +346,11 @@ public class ControllerInterpreteur {
         }
     }
 
+    /**
+     * Méthode pour générer le résultat d'analyse pour tous les gènes du patient en cours
+     * @param listGenes liste des gènes
+     * @param patient patient en cours
+     */
     private void generatePatientAllGene(List<String> listGenes, Patient patient) {
         VBox boxPatient = getvBox(patient);
         for (String gene : listGenes) {
@@ -382,9 +362,7 @@ public class ControllerInterpreteur {
     }
 
     /**
-     * Méthode pour générer la liste des analyses génomique dans le cas où l'analyse se concentre sur
-     * un seul gène
-     *
+     * Méthode pour générer le résultat d'analyse pour un gène spécifique du patient en cours
      * @param listGenes liste des gènes
      * @param patient   patient en cours
      */
@@ -409,73 +387,13 @@ public class ControllerInterpreteur {
      */
     private VBox getvBox(Patient patient) {
         VBox boxPatient = new VBox(10);
-        Label nom_patient = new Label(patient.getIdentifiant());
-        nom_patient.setId("NomPatientLabel");
-        nom_patient.setTextFill(Color.RED);
-        nom_patient.setFont(Font.font("Cambria", 20));
-        nom_patient.setAlignment(Pos.BASELINE_LEFT);
-        boxPatient.getChildren().addAll(nom_patient);
+        Label nomPatient = new Label(patient.getIdentifiant());
+        nomPatient.setId("NomPatientLabel");
+        nomPatient.setTextFill(Color.RED);
+        nomPatient.setFont(Font.font("Cambria", 20));
+        nomPatient.setAlignment(Pos.BASELINE_LEFT);
+        boxPatient.getChildren().addAll(nomPatient);
         return boxPatient;
-    }
-
-    /**
-     * Création de la box patient avec le nom du patient dans le cas d'un seul gène par patient
-     *
-     * @param patient Patient en cours de création
-     * @return HBox du Patient
-     */
-    private HBox getHBoxMini(Patient patient) {
-        HBox boxPatient = new HBox();
-        Label nom_patient = new Label(patient.getIdentifiant());
-        nom_patient.setPrefWidth(100.0);
-        nom_patient.setTextFill(Color.RED);
-        nom_patient.setFont(Font.font("Cambria", 20));
-        nom_patient.setAlignment(Pos.CENTER);
-
-        boxPatient.getChildren().addAll(nom_patient);
-        return boxPatient;
-    }
-
-    /**
-     * Création de la box patient avec le nom du patient dans le cas de plusieurs gènes
-     *
-     * @param patient
-     * @return VBox du patient
-     */
-    private VBox getVBoxMini(Patient patient) {
-        VBox boxPatient = new VBox();
-        boxPatient.setSpacing(5.0);
-        Label nom_patient = new Label(patient.getIdentifiant());
-        nom_patient.setTextFill(Color.RED);
-        nom_patient.setFont(Font.font("Cambria", 20));
-        nom_patient.setAlignment(Pos.CENTER);
-
-        boxPatient.getChildren().addAll(nom_patient);
-        return boxPatient;
-    }
-
-    /**
-     * Méthode qui permet de compléter les labels en haut de l'analyse, pour rappeler les valeurs
-     * de couleurs saisie ainsi que le filtre d'analyse utilisé
-     */
-    private void setLabels() {
-        this.labelCouleur.setText("Green value : " + this.minVert + " - " + this.maxVert + "\n" +
-                "Orange value : " + this.minOrange + " - " + this.maxOrange + "\n" +
-                "Red value : " + this.minRouge + " - " + this.maxRouge);
-        this.labelFileTSV.setText(this.fileTSV.getPath());
-        this.tsv = TSVUtils.getTSV(this.fileTSV);
-        if (this.infosAccueil.get("analysis").equals("complet")) {
-            this.labelFiltre.setText("Complet analysis running");
-        } else if (this.infosAccueil.get("analysis").equals("gene")) {
-            this.labelFiltre.setText("Gene analysis running \nGene : " + this.infosAccueil.get("gene"));
-        } else {
-            if (this.infosAccueil.containsKey("gene")) {
-                this.labelFiltre.setText("Cohort analysis running \nCohort : " + this.infosAccueil.get("cohort") +
-                        "\nGene : " + this.infosAccueil.get("gene"));
-            } else {
-                this.labelFiltre.setText("Cohort analysis running \n Cohort : " + this.infosAccueil.get("cohort"));
-            }
-        }
     }
 
 
@@ -529,97 +447,15 @@ public class ControllerInterpreteur {
     }
 
     /**
-     * Méthode qui permet de génerer un gène avec toutes ses mutations en version 1/10ème.
-     * La liste de mutations en paramètre est celle d'un patient
-     *
-     * @param nom_du_gene
-     * @param mutationList
-     * @param versionMini
-     * @return Gène construit avec ses mutations en version mini
-     */
-    private HBox newGeneBoxMini(String nom_du_gene, List<Mutation> mutationList, Boolean versionMini) {
-        Rectangle rec = rect(this.sizeGene.get(nom_du_gene) / 10, 20);
-
-        HBox hbox = new HBox();
-        hbox.setMinHeight(20);
-
-        Region region1 = new Region();
-        HBox.setHgrow(region1, Priority.ALWAYS);
-
-        AnchorPane gene_pane = new AnchorPane();
-        gene_pane.getChildren().add(rec);
-
-        if (!versionMini) {
-            AnchorPane.setLeftAnchor(rec, 150.0);
-        }
-
-        for (Mutation mutation : mutationList) {
-            if (mutation.getGene().equals(nom_du_gene) && mutation.getTaux() > this.minVert) {
-                if (!dnaAnalysis && !mutation.getMutation_pro().equals("NOT_CODING")) {
-                    createMutationBoxMini(gene_pane, mutation, versionMini);
-                } else if (dnaAnalysis) {
-                    createMutationBoxMini(gene_pane, mutation, versionMini);
-                }
-            }
-        }
-
-        hbox.getChildren().add(gene_pane);
-        hbox.getChildren().add(region1);
-
-        return hbox;
-    }
-
-    /**
-     * Méthode qui permet de génerer un gène avec toutes ses mutations en version 1/10ème.
-     * La liste de mutations en paramètre est celle d'un patient
-     *
-     * @param nom_du_gene
-     * @param mutationList
-     * @param versionMini
-     * @return Gène construit avec ses mutations en version mini
-     */
-    private HBox newGeneBoxMiniAvecGene(String nom_du_gene, List<Mutation> mutationList, Boolean versionMini) {
-        Rectangle rec = rect(this.sizeGene.get(nom_du_gene) / 10, 20);
-
-        HBox hbox = new HBox();
-        hbox.setMinHeight(20);
-
-        Label nom_gene = new Label(nom_du_gene);
-        nom_gene.setMinWidth(150);
-        nom_gene.setAlignment(Pos.CENTER);
-
-        Region region1 = new Region();
-        HBox.setHgrow(region1, Priority.ALWAYS);
-
-        AnchorPane gene_pane = new AnchorPane();
-        gene_pane.getChildren().add(rec);
-
-        if (!versionMini) {
-            AnchorPane.setLeftAnchor(rec, 150.0);
-        }
-
-        for (Mutation mutation : mutationList) {
-            if (mutation.getGene().equals(nom_du_gene) && mutation.getTaux() > this.minVert) {
-                createMutationBoxMini(gene_pane, mutation, versionMini);
-            }
-        }
-
-        hbox.getChildren().add(nom_gene);
-        hbox.getChildren().add(gene_pane);
-        hbox.getChildren().add(region1);
-
-        return hbox;
-    }
-
-    /**
      * Méthode qui permet de génerer un rectangle mutation qui sera placé sur le gène
-     * La mutation passé en paramètre permet de déterminer le choix de la couleur du rectangle
+     * La mutation passé en paramètre permet de déterminer le choix de la couleur du rectangle et sa position
+     * ainsi que le label
      *
-     * @param gene_pane pane du gène
+     * @param genePane pane du gène
      * @param mutation  mutation à ajouter
      * @return
      */
-    private Label createMutationBox(AnchorPane gene_pane, Mutation mutation) {
+    private Label createMutationBox(AnchorPane genePane, Mutation mutation) {
 
         Rectangle rec;
 
@@ -650,8 +486,8 @@ public class ControllerInterpreteur {
             }
         });
 
-        gene_pane.getChildren().add(rec);
-        gene_pane.getChildren().add(mutationLabel);
+        genePane.getChildren().add(rec);
+        genePane.getChildren().add(mutationLabel);
 
         AnchorPane.setTopAnchor(mutationLabel, 0.0);
         AnchorPane.setTopAnchor(rec, 41.0);
@@ -672,33 +508,209 @@ public class ControllerInterpreteur {
     }
 
     /**
-     * Méthode qui parcourt tous les gènes présents dans la VBox et qui setVisible les labels des mutations
-     * a true ou false
+     * Génération du label qui va accueillir nom + position de la mutation
      *
-     * @param visible true or false
+     * @param text Texte qui sera dans le label
+     * @return label remplis
      */
-    private void makeLabelsVisible(boolean visible) {
-        for (Node child : vbox.getChildren()) {
-            if (child instanceof VBox) {
-                for (Node childBoxPatient : ((VBox) child).getChildren()) {
-                    if (childBoxPatient instanceof HBox) {
-                        for (Node childHboxGene : ((HBox) childBoxPatient).getChildren()) {
-                            if (childHboxGene instanceof AnchorPane) {
-                                for (Node groupMutation : ((AnchorPane) childHboxGene).getChildren()) {
-                                    if (groupMutation.getId() != null) {
-                                        if (groupMutation.getId().contains("MutationLabel")) {
-                                            if (mutationCombo.getValue().equals("All mutations") || groupMutation.getId().contains(mutationCombo.getValue().toString())) {
-                                                groupMutation.setVisible(visible);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
+    private Label getLabelMutation(String text) {
+        return new Label(text);
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////                                                                                           /////////
+    ////////                                  Analyse Mini                                             /////////
+    ////////                                                                                           /////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+    /**
+     * Méthode qui va générer tous les gènes avec leurs mutations pour chaque cas d'analyse différents
+     * en version mini
+     *
+     * @param listGenes    liste des gènes
+     * @param listPatients liste des patients
+     */
+    private void generateAnalysisMini(List<String> listGenes, List<Patient> listPatients) {
+        Label titreMini = new Label("Compacted Version");
+        titreMini.setFont(Font.font("Cambria", 20));
+        this.vboxMini.getChildren().add(titreMini);
+
+        if (this.infosAccueil.get("analysis").equals("complet")) {
+            for (Patient patient : listPatients) {
+                VBox boxPatient = getvBox(patient);
+                for (String gene : listGenes) {
+                    HBox hbox2 = newGeneBoxMiniAvecGeneAffiche(gene, patient.getMutationList(), true);
+                    boxPatient.getChildren().addAll(hbox2);
+                }
+                this.vboxMini.getChildren().add(boxPatient);
+            }
+        }
+        if (this.infosAccueil.get("analysis").equals("gene")) {
+            for (Patient patient : listPatients) {
+                analyseMiniGeneSpecifique(listGenes, patient);
+            }
+        }
+        if (this.infosAccueil.get("analysis").equals("cohort")) {
+            if (this.infosAccueil.containsKey("gene")) {
+                for (Patient patient : listPatients) {
+                    if (patient.getIdentifiant().startsWith(String.valueOf(this.infosAccueil.get("cohort")))) {
+                        analyseMiniGeneSpecifique(listGenes, patient);
+                    }
+                }
+            } else {
+                for (Patient patient : listPatients) {
+                    if (patient.getIdentifiant().startsWith(String.valueOf(this.infosAccueil.get("cohort")))) {
+                        VBox boxPatient = getVBoxMini(patient);
+                        for (String gene : listGenes) {
+                            HBox hbox2 = newGeneBoxMiniAvecGeneAffiche(gene, patient.getMutationList(), true);
+                            boxPatient.getChildren().addAll(hbox2);
                         }
+                        this.vboxMini.getChildren().add(boxPatient);
                     }
                 }
             }
         }
+    }
+
+    /**
+     * Génération de la version mini pour un gène spécifique
+     * @param listGenes
+     * @param patient
+     */
+    private void analyseMiniGeneSpecifique(List<String> listGenes, Patient patient) {
+        HBox boxPatient = getHBoxMini(patient);
+        for (String gene : listGenes) {
+            if (gene.equals(this.infosAccueil.get("gene"))) {
+                HBox hbox2 = newGeneBoxMini(gene, patient.getMutationList(), true);
+                boxPatient.getChildren().addAll(hbox2);
+            }
+        }
+        this.vboxMini.getChildren().add(boxPatient);
+    }
+
+    /**
+     * Création de la box patient avec le nom du patient dans le cas d'un seul gène par patient pour la version
+     * mini
+     *
+     * @param patient Patient en cours de création
+     * @return HBox du Patient
+     */
+    private HBox getHBoxMini(Patient patient) {
+        HBox boxPatient = new HBox();
+        Label nomPatient = new Label(patient.getIdentifiant());
+        nomPatient.setPrefWidth(100.0);
+        nomPatient.setTextFill(Color.RED);
+        nomPatient.setFont(Font.font("Cambria", 20));
+        nomPatient.setAlignment(Pos.CENTER);
+
+        boxPatient.getChildren().addAll(nomPatient);
+        return boxPatient;
+    }
+
+    /**
+     * Création de la box patient avec le nom du patient dans le cas de plusieurs gènes par patient
+     * pour la version mini
+     *
+     * @param patient
+     * @return VBox du patient
+     */
+    private VBox getVBoxMini(Patient patient) {
+        VBox boxPatient = new VBox();
+        boxPatient.setSpacing(5.0);
+        Label nom_patient = new Label(patient.getIdentifiant());
+        nom_patient.setTextFill(Color.RED);
+        nom_patient.setFont(Font.font("Cambria", 20));
+        nom_patient.setAlignment(Pos.CENTER);
+
+        boxPatient.getChildren().addAll(nom_patient);
+        return boxPatient;
+    }
+
+
+    /**
+     * Méthode qui permet de génerer un gène avec toutes ses mutations en version 1/10ème.
+     * La liste de mutations en paramètre est celle d'un patient
+     *
+     * @param nomGene
+     * @param mutationList
+     * @param versionMini
+     * @return Gène construit avec ses mutations en version mini
+     */
+    private HBox newGeneBoxMini(String nomGene, List<Mutation> mutationList, Boolean versionMini) {
+        Rectangle rec = rect(this.sizeGene.get(nomGene) / 10, 20);
+
+        HBox hbox = new HBox();
+        hbox.setMinHeight(20);
+
+        Region region1 = new Region();
+        HBox.setHgrow(region1, Priority.ALWAYS);
+
+        AnchorPane genePane = new AnchorPane();
+        genePane.getChildren().add(rec);
+
+        if (!versionMini) {
+            AnchorPane.setLeftAnchor(rec, 150.0);
+        }
+
+        for (Mutation mutation : mutationList) {
+            if (mutation.getGene().equals(nomGene) && mutation.getTaux() > this.minVert) {
+                if (!dnaAnalysis && !mutation.getMutation_pro().equals("NOT_CODING")) {
+                    createMutationBoxMini(genePane, mutation, versionMini);
+                } else if (dnaAnalysis) {
+                    createMutationBoxMini(genePane, mutation, versionMini);
+                }
+            }
+        }
+
+        hbox.getChildren().add(genePane);
+        hbox.getChildren().add(region1);
+
+        return hbox;
+    }
+
+    /**
+     * Méthode qui permet de génerer un gène avec toutes ses mutations en version 1/10ème.
+     * La liste de mutations en paramètre est celle d'un patient
+     * Dans le cas de cette méthode, le nom du gène est affiché
+     *
+     * @param nomGene
+     * @param mutationList
+     * @param versionMini
+     * @return Gène construit avec ses mutations en version mini
+     */
+    private HBox newGeneBoxMiniAvecGeneAffiche(String nomGene, List<Mutation> mutationList, Boolean versionMini) {
+        Rectangle rec = rect(this.sizeGene.get(nomGene) / 10, 20);
+
+        HBox hbox = new HBox();
+        hbox.setMinHeight(20);
+
+        Label labelGene = new Label(nomGene);
+        labelGene.setMinWidth(150);
+        labelGene.setAlignment(Pos.CENTER);
+
+        Region region1 = new Region();
+        HBox.setHgrow(region1, Priority.ALWAYS);
+
+        AnchorPane genePane = new AnchorPane();
+        genePane.getChildren().add(rec);
+
+        if (!versionMini) {
+            AnchorPane.setLeftAnchor(rec, 150.0);
+        }
+
+        for (Mutation mutation : mutationList) {
+            if (mutation.getGene().equals(nomGene) && mutation.getTaux() > this.minVert) {
+                createMutationBoxMini(genePane, mutation, versionMini);
+            }
+        }
+
+        hbox.getChildren().add(labelGene);
+        hbox.getChildren().add(genePane);
+        hbox.getChildren().add(region1);
+
+        return hbox;
     }
 
     /**
@@ -743,65 +755,129 @@ public class ControllerInterpreteur {
         }
     }
 
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////                                                                                           /////////
+    ////////                           Intéraction avec Mutations                                      /////////
+    ////////                                                                                           /////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
     /**
-     * Méthode qui va générer tous les gènes avec leurs mutations pour chaque cas d'analyse différents
-     * en version mini
-     *
-     * @param listGenes    liste des gènes
-     * @param listPatients liste des patients
+     * Méthode qui permet de rendre les labels des mutations visibles ou invisibles quand la checkbox
+     * est cochée ou non
      */
-    private void generateAnalysisMini(List<String> listGenes, List<Patient> listPatients) {
-        Label titreMini = new Label("Compacted Version");
-        titreMini.setFont(Font.font("Cambria", 20));
-        this.vboxMini.getChildren().add(titreMini);
-
-        if (this.infosAccueil.get("analysis").equals("complet")) {
-            for (Patient patient : listPatients) {
-                VBox boxPatient = getvBox(patient);
-                for (String gene : listGenes) {
-                    HBox hbox2 = newGeneBoxMiniAvecGene(gene, patient.getMutationList(), true);
-                    boxPatient.getChildren().addAll(hbox2);
-                }
-                this.vboxMini.getChildren().add(boxPatient);
-            }
-        }
-        if (this.infosAccueil.get("analysis").equals("gene")) {
-            for (Patient patient : listPatients) {
-                duplicateCodeAnalysisMini(listGenes, patient);
-            }
-        }
-        if (this.infosAccueil.get("analysis").equals("cohort")) {
-            if (this.infosAccueil.containsKey("gene")) {
-                for (Patient patient : listPatients) {
-                    if (patient.getIdentifiant().startsWith(String.valueOf(this.infosAccueil.get("cohort")))) {
-                        duplicateCodeAnalysisMini(listGenes, patient);
-                    }
-                }
+    private void performMutationVisible() {
+        checkVisible.setOnAction(event -> {
+            if (checkVisible.isSelected()) {
+                makeLabelsVisible(true);
             } else {
-                for (Patient patient : listPatients) {
-                    if (patient.getIdentifiant().startsWith(String.valueOf(this.infosAccueil.get("cohort")))) {
-                        VBox boxPatient = getVBoxMini(patient);
-                        for (String gene : listGenes) {
-                            HBox hbox2 = newGeneBoxMiniAvecGene(gene, patient.getMutationList(), true);
-                            boxPatient.getChildren().addAll(hbox2);
+                makeLabelsVisible(false);
+            }
+        });
+    }
+
+    /**
+     * Méthode qui parcourt tous les gènes présents dans la VBox et qui setVisible les labels des mutations
+     * a true ou false
+     *
+     * @param visible true or false
+     */
+    private void makeLabelsVisible(boolean visible) {
+        for (Node child : vbox.getChildren()) {
+            if (child instanceof VBox) {
+                for (Node childBoxPatient : ((VBox) child).getChildren()) {
+                    if (childBoxPatient instanceof HBox) {
+                        for (Node childHboxGene : ((HBox) childBoxPatient).getChildren()) {
+                            if (childHboxGene instanceof AnchorPane) {
+                                for (Node groupMutation : ((AnchorPane) childHboxGene).getChildren()) {
+                                    if (groupMutation.getId() != null) {
+                                        if (groupMutation.getId().contains("MutationLabel")) {
+                                            if (mutationCombo.getValue().equals("All mutations") || groupMutation.getId().contains(mutationCombo.getValue().toString())) {
+                                                groupMutation.setVisible(visible);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
-                        this.vboxMini.getChildren().add(boxPatient);
                     }
                 }
             }
         }
     }
 
-    private void duplicateCodeAnalysisMini(List<String> listGenes, Patient patient) {
-        HBox boxPatient = getHBoxMini(patient);
-        for (String gene : listGenes) {
-            if (gene.equals(this.infosAccueil.get("gene"))) {
-                HBox hbox2 = newGeneBoxMini(gene, patient.getMutationList(), true);
-                boxPatient.getChildren().addAll(hbox2);
+    /**
+     * Méthode qui permet de rendre invisible toutes les mutations qui ne correspondent pas a la mutation
+     * selectionnée dans la combobox
+     *
+     * @param mutation
+     */
+    private void setSpecificMutationVisible(String mutation) {
+        for (Node child : vbox.getChildren()) {
+            childInstanceVBox(mutation, child);
+        }
+        for (Node child : vboxMini.getChildren()) {
+            if (child instanceof HBox) {
+                for (Node childBoxPatient : ((HBox) child).getChildren()) {
+                    if (childBoxPatient instanceof HBox) {
+                        for (Node childHboxGene : ((HBox) childBoxPatient).getChildren()) {
+                            if (childHboxGene instanceof AnchorPane) {
+                                for (Node groupMutation : ((AnchorPane) childHboxGene).getChildren()) {
+                                    if (mutation.equals("All mutations")) {
+                                        groupMutation.setVisible(true);
+                                    } else if (groupMutation.getId() != null) {
+                                        if (groupMutation.getId().contains(mutation)) {
+                                            groupMutation.setVisible(true);
+                                        } else {
+                                            groupMutation.setVisible(false);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            childInstanceVBox(mutation, child);
+        }
+        checkVisible.setSelected(true);
+    }
+
+    /**
+     * Méthode idem à la précédente mais cette fois ci se sont les VBox qui sont vérifées
+     * @param mutation
+     * @param child
+     */
+    private void childInstanceVBox(String mutation, Node child) {
+        if (child instanceof VBox) {
+            for (Node childBoxPatient : ((VBox) child).getChildren()) {
+                if (childBoxPatient instanceof HBox) {
+                    for (Node childHboxGene : ((HBox) childBoxPatient).getChildren()) {
+                        if (childHboxGene instanceof AnchorPane) {
+                            for (Node groupMutation : ((AnchorPane) childHboxGene).getChildren()) {
+                                if (mutation.equals("All mutations")) {
+                                    groupMutation.setVisible(true);
+                                } else if (groupMutation.getId() != null) {
+                                    if (groupMutation.getId().contains(mutation)) {
+                                        groupMutation.setVisible(true);
+                                    } else {
+                                        groupMutation.setVisible(false);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
-        this.vboxMini.getChildren().add(boxPatient);
     }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////                                                                                           /////////
+    ////////                                  Rectangles                                               /////////
+    ////////                                                                                           /////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
      * Génération du rectangle correspondant au gène
@@ -825,9 +901,9 @@ public class ControllerInterpreteur {
      * @return Rectangle rouge
      */
     private Rectangle recRouge(int height, int width) {
-        Rectangle rec_rouge = new Rectangle(width, height);
-        rec_rouge.setFill(Color.rgb(255, 0, 0));
-        return rec_rouge;
+        Rectangle recRouge = new Rectangle(width, height);
+        recRouge.setFill(Color.rgb(255, 0, 0));
+        return recRouge;
     }
 
     /**
@@ -838,9 +914,9 @@ public class ControllerInterpreteur {
      * @return Rectangle orange
      */
     private Rectangle recOrange(int height, int width) {
-        Rectangle rec_rouge = new Rectangle(width, height);
-        rec_rouge.setFill(Color.rgb(255, 153, 0));
-        return rec_rouge;
+        Rectangle recOrange = new Rectangle(width, height);
+        recOrange.setFill(Color.rgb(255, 153, 0));
+        return recOrange;
     }
 
     /**
@@ -851,20 +927,18 @@ public class ControllerInterpreteur {
      * @return Rectangle vert
      */
     private Rectangle recVert(int height, int width) {
-        Rectangle rec_vert = new Rectangle(width, height);
-        rec_vert.setFill(Color.GREEN);
-        return rec_vert;
+        Rectangle recVert = new Rectangle(width, height);
+        recVert.setFill(Color.GREEN);
+        return recVert;
     }
 
-    /**
-     * Génération du label qui va accueillir nom + position de la mutation
-     *
-     * @param text Texte qui sera dans le label
-     * @return label remplis
-     */
-    private Label getLabelMutation(String text) {
-        return new Label(text);
-    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////                                                                                           /////////
+    ////////                                  Setters                                                  /////////
+    ////////                                                                                           /////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
     public void setSizeGene(HashMap<String, Integer> sizeGene) {
         this.sizeGene = sizeGene;
