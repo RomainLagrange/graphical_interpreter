@@ -14,9 +14,14 @@ public class Patient {
 
     private HashMap<String, Object> metadata;
 
+    /**
+     * Constructeur
+     * @param identifiant
+     */
     public Patient(String identifiant) {
         this.identifiant = identifiant;
     }
+
 
     public String getIdentifiant() {
         return identifiant;

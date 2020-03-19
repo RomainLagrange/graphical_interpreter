@@ -137,14 +137,13 @@ public class ControllerInterpreteur {
             exportDixieme.setOnAction(e -> saveImageMini());
 
             List<String> listGenes = getListGenes(this.tsv);
+
             List<Patient> listPatients;
             if (((HashMap<String, Object>) infosAccueil.get("metadata")).isEmpty()) {
                 listPatients = getListPatient(this.tsv);
             } else {
                 listPatients = getListPatientMetadata(this.tsv, this.metadata, this.typeMetadata, this.infosAccueil);
             }
-
-            performMutationVisible();
 
             setMutationsPatients(listPatients, this.tsv);
 
@@ -165,6 +164,8 @@ public class ControllerInterpreteur {
 
             generateAnalysis(listGenes, listPatients);
             generateAnalysisMini(listGenes, listPatients);
+
+            performMutationVisible();
         });
     }
 
@@ -401,17 +402,11 @@ public class ControllerInterpreteur {
      * Méthode qui permet de génerer un gène avec toutes ses mutations.
      * La liste de mutations en paramètre est celle d'un patient
      *
-     * @param nom_du_gene  Nom du gène
+     * @param nomDuGene  Nom du gène
      * @param mutationList Liste des mutations
      * @return Gène construit avec ses mutations
      */
-    private HBox newGeneBox(String nom_du_gene, List<Mutation> mutationList) {
-        Rectangle rec;
-        if (this.dnaAnalysis) {
-            rec = rect(this.sizeGene.get(nom_du_gene), 40);
-        } else {
-            rec = rect(this.sizeGene.get(nom_du_gene), 40);
-        }
+    private HBox newGeneBox(String nomDuGene, List<Mutation> mutationList) {
 
         HBox hbox = new HBox();
         hbox.setAlignment(Pos.TOP_CENTER);
@@ -420,27 +415,28 @@ public class ControllerInterpreteur {
         Region region1 = new Region();
         HBox.setHgrow(region1, Priority.ALWAYS);
 
-        Label nom_gene = new Label(nom_du_gene);
-        nom_gene.setMinWidth(150);
-        nom_gene.setMinHeight(90);
-        nom_gene.setAlignment(Pos.CENTER);
+        Label nomGene = new Label(nomDuGene);
+        nomGene.setMinWidth(150);
+        nomGene.setMinHeight(90);
+        nomGene.setAlignment(Pos.CENTER);
 
-        AnchorPane gene_pane = new AnchorPane();
-        gene_pane.getChildren().add(rec);
+        AnchorPane genePane = new AnchorPane();
+        Rectangle rec  = rect(this.sizeGene.get(nomDuGene), 40);
+        genePane.getChildren().add(rec);
         AnchorPane.setTopAnchor(rec, 40.0);
 
         for (Mutation mutation : mutationList) {
-            if (mutation.getGene().equals(nom_du_gene) && mutation.getTaux() > this.minVert) {
-                if (!dnaAnalysis && !mutation.getMutation_pro().equals("NOT_CODING")) {
-                    createMutationBox(gene_pane, mutation);
+            if (mutation.getGene().equals(nomDuGene) && mutation.getTaux() > this.minVert) {
+                if (!dnaAnalysis && !mutation.getMutationPro().equals("NOT_CODING")) {
+                    createMutationBox(genePane, mutation);
                 } else if (dnaAnalysis) {
-                    createMutationBox(gene_pane, mutation);
+                    createMutationBox(genePane, mutation);
                 }
             }
         }
 
-        hbox.getChildren().add(nom_gene);
-        hbox.getChildren().add(gene_pane);
+        hbox.getChildren().add(nomGene);
+        hbox.getChildren().add(genePane);
         hbox.getChildren().add(region1);
 
         return hbox;
@@ -469,9 +465,9 @@ public class ControllerInterpreteur {
 
         Label mutationLabel;
         if (this.dnaAnalysis) {
-            mutationLabel = getLabelMutation(mutation.getMutation_nuc() + "\n" + mutation.getPosition_nuc());
+            mutationLabel = getLabelMutation(mutation.getMutationNuc() + "\n" + mutation.getPositionNuc());
         } else {
-            mutationLabel = getLabelMutation(mutation.getMutation_pro() + "\n" + mutation.getPosition_pro());
+            mutationLabel = getLabelMutation(mutation.getMutationPro() + "\n" + mutation.getPositionPro());
         }
 
         mutationLabel.setMinWidth(30);
@@ -494,13 +490,13 @@ public class ControllerInterpreteur {
 
 
         if (this.dnaAnalysis) {
-            AnchorPane.setLeftAnchor(mutationLabel, Double.valueOf(mutation.getPosition_nuc()) - 10.0);
-            AnchorPane.setLeftAnchor(rec, Double.valueOf(mutation.getPosition_nuc()));
-            rec.setId(mutation.getMutation_nuc());
+            AnchorPane.setLeftAnchor(mutationLabel, Double.valueOf(mutation.getPositionNuc()) - 10.0);
+            AnchorPane.setLeftAnchor(rec, Double.valueOf(mutation.getPositionNuc()));
+            rec.setId(mutation.getMutationNuc());
         } else {
-            AnchorPane.setLeftAnchor(mutationLabel, (Double.valueOf(mutation.getPosition_pro()) * 3.0 - 10.0));
-            AnchorPane.setLeftAnchor(rec, (Double.valueOf(mutation.getPosition_pro())) * 3.0);
-            rec.setId(mutation.getMutation_pro());
+            AnchorPane.setLeftAnchor(mutationLabel, (Double.valueOf(mutation.getPositionPro()) * 3.0 - 10.0));
+            AnchorPane.setLeftAnchor(rec, (Double.valueOf(mutation.getPositionPro())) * 3.0);
+            rec.setId(mutation.getMutationPro());
         }
 
         return mutationLabel;
@@ -656,7 +652,7 @@ public class ControllerInterpreteur {
 
         for (Mutation mutation : mutationList) {
             if (mutation.getGene().equals(nomGene) && mutation.getTaux() > this.minVert) {
-                if (!dnaAnalysis && !mutation.getMutation_pro().equals("NOT_CODING")) {
+                if (!dnaAnalysis && !mutation.getMutationPro().equals("NOT_CODING")) {
                     createMutationBoxMini(genePane, mutation, versionMini);
                 } else if (dnaAnalysis) {
                     createMutationBoxMini(genePane, mutation, versionMini);
@@ -738,19 +734,19 @@ public class ControllerInterpreteur {
 
         if (versionMini) {
             if (this.dnaAnalysis) {
-                AnchorPane.setLeftAnchor(rec, Double.valueOf(mutation.getPosition_nuc()) / 10.0);
-                rec.setId(mutation.getMutation_nuc());
+                AnchorPane.setLeftAnchor(rec, Double.valueOf(mutation.getPositionNuc()) / 10.0);
+                rec.setId(mutation.getMutationNuc());
             } else {
-                AnchorPane.setLeftAnchor(rec, Double.valueOf(mutation.getPosition_pro()) * 3.0 / 10.0);
-                rec.setId(mutation.getMutation_pro());
+                AnchorPane.setLeftAnchor(rec, Double.valueOf(mutation.getPositionPro()) * 3.0 / 10.0);
+                rec.setId(mutation.getMutationPro());
             }
         } else {
             if (this.dnaAnalysis) {
-                AnchorPane.setLeftAnchor(rec, 150.0 + Double.valueOf(mutation.getPosition_nuc()) / 10.0);
-                rec.setId(mutation.getMutation_nuc());
+                AnchorPane.setLeftAnchor(rec, 150.0 + Double.valueOf(mutation.getPositionNuc()) / 10.0);
+                rec.setId(mutation.getMutationNuc());
             } else {
-                AnchorPane.setLeftAnchor(rec, 150.0 + Double.valueOf(mutation.getPosition_pro()) * 3.0 / 10.0);
-                rec.setId(mutation.getMutation_pro());
+                AnchorPane.setLeftAnchor(rec, 150.0 + Double.valueOf(mutation.getPositionPro()) * 3.0 / 10.0);
+                rec.setId(mutation.getMutationPro());
             }
         }
     }

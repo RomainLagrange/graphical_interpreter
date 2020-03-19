@@ -8,22 +8,22 @@ public class Mutation {
     /**
      * Position nucléotidique de la mutation
      */
-    private Integer position_nuc;
+    private Integer positionNuc;
 
     /**
      * Position protéique de la mutation
      */
-    private Integer position_pro;
+    private Integer positionPro;
 
     /**
      * Type de la mutation en nucléotide
      */
-    private String mutation_nuc;
+    private String mutationNuc;
 
     /**
      * Type de la mutation en acide aminé
      */
-    private String mutation_pro;
+    private String mutationPro;
 
     /**
      * Nom du gène sur lequel se trouve la mutation
@@ -36,10 +36,10 @@ public class Mutation {
     private Double taux;
 
     public Mutation(Integer position_nuc, Integer position_pro, String mutation_nuc, String mutation_pro, String gene) {
-        this.position_nuc = position_nuc;
-        this.position_pro = position_pro;
-        this.mutation_nuc = mutation_nuc;
-        this.mutation_pro = mutation_pro;
+        this.positionNuc = position_nuc;
+        this.positionPro = position_pro;
+        this.mutationNuc = mutation_nuc;
+        this.mutationPro = mutation_pro;
         this.gene = gene;
         this.taux = 0.0;
     }
@@ -60,35 +60,35 @@ public class Mutation {
         this.gene = gene;
     }
 
-    public Integer getPosition_nuc() {
-        return position_nuc;
+    public Integer getPositionNuc() {
+        return positionNuc;
     }
 
-    public void setPosition_nuc(Integer position_nuc) {
-        this.position_nuc = position_nuc;
+    public void setPositionNuc(Integer positionNuc) {
+        this.positionNuc = positionNuc;
     }
 
-    public Integer getPosition_pro() {
-        return position_pro;
+    public Integer getPositionPro() {
+        return positionPro;
     }
 
-    public void setPosition_pro(Integer position_pro) {
-        this.position_pro = position_pro;
+    public void setPositionPro(Integer positionPro) {
+        this.positionPro = positionPro;
     }
 
-    public String getMutation_nuc() {
-        return mutation_nuc;
+    public String getMutationNuc() {
+        return mutationNuc;
     }
 
-    public void setMutation_nuc(String mutation_nuc) {
-        this.mutation_nuc = mutation_nuc;
+    public void setMutationNuc(String mutationNuc) {
+        this.mutationNuc = mutationNuc;
     }
 
-    public String getMutation_pro() {
-        return mutation_pro;
+    public String getMutationPro() {
+        return mutationPro;
     }
 
-    public void setMutation_pro(String mutation_pro) {
-        this.mutation_pro = mutation_pro;
+    public void setMutationPro(String mutationPro) {
+        this.mutationPro = mutationPro;
     }
 }

@@ -49,33 +49,34 @@ public class TSVUtils {
      */
     private static List<Mutation> getMutations(List<List<String>> tsv) {
 
-        List<Mutation> list_mutations = new ArrayList<>();
-        List<String[]> list_inter = new ArrayList<>();
+        List<Mutation> mutationList = new ArrayList<>();
+        List<String[]> listInter = new ArrayList<>();
         for (List<String> i : tsv) {
-            list_inter.add(i.get(0).split("\\|"));
+            listInter.add(i.get(0).split("\\|"));
         }
-        list_inter.remove(0);
-        int position_nuc;
-        int position_pro;
-        String mutation_nuc;
-        String mutation_pro;
-        String gene;
-        for (String[] strings : list_inter) {
-            if (strings[2].equals("CODING")) {
-                mutation_pro = strings[6];
-                position_pro = Integer.parseInt(strings[5]);
-            } else {
-                mutation_pro = "NOT_CODING";
-                position_pro = 0;
-            }
-            position_nuc = Integer.parseInt(strings[3]);
-            mutation_nuc = strings[7];
-            gene = strings[0];
+        listInter.remove(0);
 
-            Mutation mutation = new Mutation(position_nuc, position_pro, mutation_nuc, mutation_pro, gene);
-            list_mutations.add(mutation);
+        int positionNuc;
+        int positionPro;
+        String mutationNuc;
+        String mutationPro;
+        String gene;
+        for (String[] mutationString : listInter) {
+            if (mutationString[2].equals("CODING")) {
+                mutationPro = mutationString[6];
+                positionPro = Integer.parseInt(mutationString[5]);
+            } else {
+                mutationPro = "NOT_CODING";
+                positionPro = 0;
+            }
+            positionNuc = Integer.parseInt(mutationString[3]);
+            mutationNuc = mutationString[7];
+            gene = mutationString[0];
+
+            Mutation mutation = new Mutation(positionNuc, positionPro, mutationNuc, mutationPro, gene);
+            mutationList.add(mutation);
         }
-        return list_mutations;
+        return mutationList;
     }
 
     /**
@@ -85,20 +86,20 @@ public class TSVUtils {
      * @return List des gènes
      */
     public static List<String> getListGenes(List<List<String>> tsv) {
-        List<String[]> list_inter = new ArrayList<>();
-        List<String> liste_final = new ArrayList<>();
+        List<String[]> listInter = new ArrayList<>();
+        List<String> listeFinal = new ArrayList<>();
 
         for (List<String> i : tsv) {
-            list_inter.add(i.get(0).split("\\|"));
+            listInter.add(i.get(0).split("\\|"));
         }
-        for (String[] strings : list_inter) {
-            liste_final.add(strings[0]);
+        for (String[] strings : listInter) {
+            listeFinal.add(strings[0]);
         }
-        liste_final = liste_final.stream()
+        listeFinal = listeFinal.stream()
                 .distinct()
                 .collect(Collectors.toList());
-        liste_final.remove(0);
-        return liste_final;
+        listeFinal.remove(0);
+        return listeFinal;
     }
 
     /**
@@ -127,7 +128,7 @@ public class TSVUtils {
      * @param metadata File metadata
      * @return La liste des patients
      */
-    public static List<Patient> getListPatientMetadata(List<List<String>> tsv, ArrayList<List<String>> metadata, HashMap<String, String> typeMetadata, HashMap<String, Object> filtre) {
+    public static List<Patient> getListPatientMetadata(List<List<String>> tsv, ArrayList<List<String>> metadata, HashMap<String, String> typeMetadata, HashMap<String, Object> infosAccueil) {
         List<Patient> patientList = new ArrayList<>();
         List<String> listInter;
 
@@ -156,12 +157,43 @@ public class TSVUtils {
                 }
             }
             patient.setMetadata(metadataPatient);
-            if (checkMetadata(patient, filtre)) {
+            if (checkMetadata(patient, infosAccueil)) {
                 patientList.add(patient);
             }
         }
         patientList.remove(0);
         return patientList;
+    }
+
+    /**
+     * Méthode qui permet de checker le contenu metadata de patient et celui des infos accueil pour savoir s'il faut
+     * générer ou non l'analyse du patient et l'ajouter à la liste des patients
+     *
+     * @param patient patient
+     * @param infosAccueil hashmap contenant les infos de la fenêtre d'accueil
+     * @return true ou false selon que le patient doit etre ajouté ou non
+     */
+    private static boolean checkMetadata(Patient patient, HashMap<String, Object> infosAccueil) {
+        for (String metadataPatient : patient.getMetadata().keySet()) {
+            if (((HashMap<String, Object>) infosAccueil.get("metadata")).containsKey(metadataPatient)) {
+                if (patient.getMetadata().get(metadataPatient) instanceof String) {
+                    if (!((HashMap<String, Object>) infosAccueil.get("metadata")).get(metadataPatient).equals(patient.getMetadata().get(metadataPatient))) {
+                        return false;
+                    }
+                } else if (patient.getMetadata().get(metadataPatient) instanceof Double) {
+                    if ((Double) patient.getMetadata().get(metadataPatient) > ((Double) ((HashMap<String, Object>) ((HashMap<String, Object>) infosAccueil.get("metadata")).get(metadataPatient)).get("max")) ||
+                            (Double) patient.getMetadata().get(metadataPatient) < ((Double) ((HashMap<String, Object>) ((HashMap<String, Object>) infosAccueil.get("metadata")).get(metadataPatient)).get("min"))) {
+                        return false;
+                    }
+                } else if (patient.getMetadata().get(metadataPatient) instanceof Integer) {
+                    if ((Integer) patient.getMetadata().get(metadataPatient) > ((Integer) ((HashMap<String, Object>) ((HashMap<String, Object>) infosAccueil.get("metadata")).get(metadataPatient)).get("max")) ||
+                            (Integer) patient.getMetadata().get(metadataPatient) < ((Integer) ((HashMap<String, Object>) ((HashMap<String, Object>) infosAccueil.get("metadata")).get(metadataPatient)).get("min"))) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
     }
 
     /**
@@ -171,17 +203,18 @@ public class TSVUtils {
      * @param tsv         File TSV
      */
     public static void setMutationsPatients(List<Patient> patientList, List<List<String>> tsv) {
+        int colonne = 0;
         for (Patient patient : patientList) {
-            int indice = 0;
             for (int i = 1; i < tsv.get(0).size(); i++) {
                 if (tsv.get(0).get(i).equals(patient.getIdentifiant())) {
-                    indice = i;
+                    colonne = i;
+                    break;
                 }
             }
 
             List<Mutation> mutationList = getMutations(tsv);
-            for (int j = 1; j < tsv.size(); j++) {
-                mutationList.get(j - 1).setTaux(Double.valueOf(tsv.get(j).get(indice)));
+            for (int ligne = 1; ligne < tsv.size(); ligne++) {
+                mutationList.get(ligne - 1).setTaux(Double.valueOf(tsv.get(ligne).get(colonne)));
             }
             patient.setMutationList(mutationList);
         }
@@ -201,12 +234,12 @@ public class TSVUtils {
             if (!(patient.getMutationList() == null)) {
                 for (Mutation mutationPatient : patient.getMutationList()) {
                     if (filtre.get("analysis").equals("gene")) {
-                        if (!options.contains(mutationPatient.getMutation_nuc()) && mutationPatient.getGene().equals(filtre.get("gene")) && mutationPatient.getTaux() > 0) {
-                            options.add(mutationPatient.getMutation_nuc());
+                        if (!options.contains(mutationPatient.getMutationNuc()) && mutationPatient.getGene().equals(filtre.get("gene")) && mutationPatient.getTaux() > 0) {
+                            options.add(mutationPatient.getMutationNuc());
                         }
                     } else {
-                        if (!options.contains(mutationPatient.getMutation_nuc()) && mutationPatient.getTaux() > 0) {
-                            options.add(mutationPatient.getMutation_nuc());
+                        if (!options.contains(mutationPatient.getMutationNuc()) && mutationPatient.getTaux() > 0) {
+                            options.add(mutationPatient.getMutationNuc());
                         }
                     }
                 }
@@ -230,48 +263,18 @@ public class TSVUtils {
             if (!(patient.getMutationList() == null)) {
                 for (Mutation mutationPatient : patient.getMutationList()) {
                     if (filtre.get("analysis").equals("gene")) {
-                        if (!options.contains(mutationPatient.getMutation_pro()) && !mutationPatient.getMutation_pro().equals("NOT_CODING") && mutationPatient.getGene().equals(filtre.get("gene")) && mutationPatient.getTaux() > 0) {
-                            options.add(mutationPatient.getMutation_pro());
+                        if (!options.contains(mutationPatient.getMutationPro()) && !mutationPatient.getMutationPro().equals("NOT_CODING") && mutationPatient.getGene().equals(filtre.get("gene")) && mutationPatient.getTaux() > 0) {
+                            options.add(mutationPatient.getMutationPro());
                         }
                     } else {
-                        if (!options.contains(mutationPatient.getMutation_pro()) && !mutationPatient.getMutation_pro().equals("NOT_CODING") && mutationPatient.getTaux() > 0) {
-                            options.add(mutationPatient.getMutation_pro());
+                        if (!options.contains(mutationPatient.getMutationPro()) && !mutationPatient.getMutationPro().equals("NOT_CODING") && mutationPatient.getTaux() > 0) {
+                            options.add(mutationPatient.getMutationPro());
                         }
                     }
                 }
             }
         }
         return options;
-    }
-
-    /**
-     * Méthode qui permet de checker le contenu metadata de patient et celui du filtre pour savoir s'il faut
-     * générer ou non l'analyse du patient et l'ajouter à la liste des patients
-     *
-     * @param patient patient
-     * @return true ou false selon que le patient doit etre généré ou non
-     */
-    public static boolean checkMetadata(Patient patient, HashMap<String, Object> filtre) {
-        for (String metadataPatient : patient.getMetadata().keySet()) {
-            if (((HashMap<String, Object>) filtre.get("metadata")).containsKey(metadataPatient)) {
-                if (patient.getMetadata().get(metadataPatient) instanceof String) {
-                    if (!((HashMap<String, Object>) filtre.get("metadata")).get(metadataPatient).equals(patient.getMetadata().get(metadataPatient))) {
-                        return false;
-                    }
-                } else if (patient.getMetadata().get(metadataPatient) instanceof Double) {
-                    if ((Double) patient.getMetadata().get(metadataPatient) > ((Double) ((HashMap<String, Object>) ((HashMap<String, Object>) filtre.get("metadata")).get(metadataPatient)).get("max")) ||
-                            (Double) patient.getMetadata().get(metadataPatient) < ((Double) ((HashMap<String, Object>) ((HashMap<String, Object>) filtre.get("metadata")).get(metadataPatient)).get("min"))) {
-                        return false;
-                    }
-                } else if (patient.getMetadata().get(metadataPatient) instanceof Integer) {
-                    if ((Integer) patient.getMetadata().get(metadataPatient) > ((Integer) ((HashMap<String, Object>) ((HashMap<String, Object>) filtre.get("metadata")).get(metadataPatient)).get("max")) ||
-                            (Integer) patient.getMetadata().get(metadataPatient) < ((Integer) ((HashMap<String, Object>) ((HashMap<String, Object>) filtre.get("metadata")).get(metadataPatient)).get("min"))) {
-                        return false;
-                    }
-                }
-            }
-        }
-        return true;
     }
 
 }
